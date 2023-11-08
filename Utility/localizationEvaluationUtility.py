@@ -876,15 +876,15 @@ def plotHemisphereMap(titles,
         cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap),
                             cax=color_bar_ax,
                             orientation="horizontal")
-        cbar.set_label('Median Response Time (s)', rotation=0)
+        cbar.set_label('Median Response Time (sec.)', rotation=0)
 
     if data_to_plot == 'ConfusionRate':
-        savename = 'SingleDirectionResults_Confusion_' + EXP.upper() + '.pdf'
+        savename = 'Hemisphere_QuadrantErrors_' + EXP.upper() + '.pdf'
     if data_to_plot == 'Localization':
-        savename = 'SingleDirectionResults_Localization_' + EXP.upper(
+        savename = 'Hemisphere_Localization_' + EXP.upper(
         ) + '.pdf'
     if data_to_plot == 'ResponseTime':
-        savename = 'SingleDirectionResults_ResponseTime_' + EXP.upper(
+        savename = 'Hemisphere_ResponseTime_' + EXP.upper(
         ) + '.pdf'
 
     plt.savefig(fname=pjoin(root_dir, 'Figures', savename),
@@ -992,7 +992,7 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_na
 
         axs[col].set_xlim(0, 5)
         if col == 0:
-            axs[col].set_ylabel('Response time (s)')
+            axs[col].set_ylabel('Response time (sec.)')
         # plt.xlabel('Condition')
         axs[col].set_xticks(x_offsets, xticklabels)
         # axs[col].set_yticks(np.arange(0, 11), ['0', '', '2',
