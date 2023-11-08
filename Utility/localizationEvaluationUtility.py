@@ -947,6 +947,8 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_na
                               xerr=0, yerr=asymmetric_IQR, color='k', zorder=2)
             axs[col].plot(x_off, median_time, 's', markersize=6, markerfacecolor='white',
                           markeredgecolor='k', zorder=3)
+        axs[col].text(1.15, -0.7, s='Real')
+        axs[col].text(3, -0.7, s='Virtual')
 
         y_refs = [2, 1.5]
         for i, y_ref in zip(range(len(pairs_to_be_tested)), y_refs):
