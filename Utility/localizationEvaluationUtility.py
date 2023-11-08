@@ -60,11 +60,14 @@ dir_sets = [
     np.array([0, 24, 23]),
     np.concatenate((L2_idcs, L3_idcs)),
 ]
-dirset_names = [
-    'Horizontal', 'Frontal', 'Elevated'
-]
+dirset_names = ['Horizontal', 'Frontal', 'Elevated']
 
-title_bool_list = [True, False, True, False, True, False, False, True]
+# 0 DEG # -30 DEG # 30 DEG # -90 DEG# 90 DEG # 180 DEG # -150 DEG # 150 DEG
+
+#title_bool_list = [True, False, True, False, True, False, False, True]
+title_bool_list = [True, False, True, False, True, False, True, True]
+
+xaxis_bool_list = [False, True, False, True, False, True, True, True]
 
 all_colors = ['tab:orange'] * 8 + ['tab:red'] * 8 + ['tab:purple'] * 4 + [
     'tab:brown'
@@ -247,8 +250,8 @@ def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
             np.save(file=pjoin(
                 save_dir,
                 EXP + '_' + dirset_name + '_' + metric_name + '.npy'),
-                arr=metric_data,
-                allow_pickle=True)
+                    arr=metric_data,
+                    allow_pickle=True)
     return
 
 
@@ -269,7 +272,7 @@ def loadAndPrintErrorMetric(load_dir, dirset_names):
                 metric_data_all = np.load(file=pjoin(
                     load_dir,
                     EXP + '_' + dirset_name + '_' + metric_name + '.npy'),
-                    allow_pickle=True)
+                                          allow_pickle=True)
                 metric_data_all = metric_data_all.tolist()
 
                 if EXP == 'Static':
@@ -381,7 +384,12 @@ def computeMetrics(response_elevations,
     return slope, intercept, sigma, bias
 
 
-def renderInsetAxis(ax, active_idcs, coord_x, coord_y, pos_size_list, mkr_size=15):
+def renderInsetAxis(ax,
+                    active_idcs,
+                    coord_x,
+                    coord_y,
+                    pos_size_list,
+                    mkr_size=15):
     # inset axes for pictogram of source directions
     ring_color = 'grey'
     figsize = 3
@@ -433,12 +441,12 @@ def renderInsetAxis(ax, active_idcs, coord_x, coord_y, pos_size_list, mkr_size=1
 
 
 def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
-                       deg_list, title_bool_list, titles, final_dict_names,
-                       local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
-                       root_dir, plot_avg_ele):
-    for mvp_idcs, pairs_to_be_tested, target_elevations, name, deg, title_bool in zip(
+                       deg_list, title_bool_list, titles, xaxis_bool_list,
+                       final_dict_names, local_azi_ele_data, coord_x, coord_y,
+                       all_colors, EXP, root_dir, plot_avg_ele):
+    for mvp_idcs, pairs_to_be_tested, target_elevations, name, deg, title_bool, xaxis_bool in zip(
             idcs_list, pairtest_list, target_ele_list, name_list, deg_list,
-            title_bool_list):
+            title_bool_list, xaxis_bool_list):
         num_rows = 1
         num_cols = 4
         figsize = 3
@@ -475,9 +483,8 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 stacked = np.array([cond_ele_first, cond_ele_second])
                 conditions_ele = np.nanmean(stacked, axis=0)
 
-            slope, intercept, sigma, bias = computeMetrics(conditions_ele,
-                                                           target_elevations,
-                                                           median_statistic=True)
+            slope, intercept, sigma, bias = computeMetrics(
+                conditions_ele, target_elevations, median_statistic=True)
             axs[col].text(x=55,
                           y=-6,
                           s=r'$g = $' + str(round(slope, 2)),
@@ -487,8 +494,11 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                           s=r'$\sigma = $' + str(round(sigma, 1)) + '°',
                           fontsize=10)
             x = np.linspace(-30, 90, 100)
-            axs[col].plot(x, slope*x + intercept,
-                          zorder=0, color='gray', ls=':')
+            axs[col].plot(x,
+                          slope * x + intercept,
+                          zorder=0,
+                          color='gray',
+                          ls=':')
             # axs[col].text(x=55,
             #              y=-19.5,
             #              s=r'$b = $' + str(round(bias, 1)) + '°')
@@ -584,9 +594,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                              facecolors='white',
                              zorder=3,
                              s=30)
-            axs[col].set_xlim(-30, 90)
-            axs[col].set_ylim(-30, 90)
-            axs[col].set_xlabel('Elevation Target (deg.)')
+
             if col == 0:
                 axs[col].set_ylabel('Elevation Response (deg.)')
                 # axs[col].text(22.5, 80, s='AZI = ' + deg, fontsize=11)
@@ -638,7 +646,15 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                               alpha=1,
                               zorder=6)
                 axins.set_aspect('equal')
-            axs[col].set_xticks([-15, 0, 15, 30, 60])
+            axs[col].set_xlim(-30, 90)
+            axs[col].set_ylim(-30, 90)
+            if xaxis_bool:
+                axs[col].set_xticks([-15, 0, 15, 30, 60])
+                axs[col].set_xlabel('Elevation Target (deg.)')
+            else:
+                axs[col].set_xticks([-15, 0, 15, 30, 60])
+                axs[col].set_xticklabels([])
+
             axs[col].set_yticks([-15, 0, 15, 30, 60])
             if title_bool:
                 axs[col].set_title(titles[col])
@@ -674,7 +690,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
         plt.savefig(fname=pjoin(
             root_dir, 'Figures',
             name + '_VerticalPlane_' + EXP.upper() + '.pdf'),
-            bbox_inches='tight')
+                    bbox_inches='tight')
 
 
 def plotHemisphereMap(titles,
@@ -767,8 +783,8 @@ def plotHemisphereMap(titles,
         if data_to_plot == 'ConfusionRate':
             axs[col].scatter(r * coord_x,
                              r * coord_y,
-                             facecolors=cmap(confusion_data[condition] * 100.0 /
-                                             NORM_RATE),
+                             facecolors=cmap(confusion_data[condition] *
+                                             100.0 / NORM_RATE),
                              edgecolors='k',
                              s=100,
                              alpha=1.0,
@@ -777,8 +793,8 @@ def plotHemisphereMap(titles,
             if col == 0 and EXP == 'Static':
                 idx += 1
                 ext.append([
-                    axs[col].get_window_extent(
-                    ).x0, axs[col].get_window_extent().width
+                    axs[col].get_window_extent().x0,
+                    axs[col].get_window_extent().width
                 ])
                 axs[col].set_ylim(-1, 1)
                 axs[col].set_xlim(-1, 1)
@@ -786,16 +802,15 @@ def plotHemisphereMap(titles,
                 axs[col].set_xticks([])
                 continue
             else:
-                val = (
-                    np.median(time_data[condition], axis=0) - 3.0) / NORM_SEC
-                axs[col].scatter(
-                    r * coord_x,
-                    r * coord_y,
-                    facecolors=cmap(val),
-                    edgecolors='k',
-                    s=100,
-                    alpha=1.0,
-                    zorder=2)
+                val = (np.median(time_data[condition], axis=0) -
+                       3.0) / NORM_SEC
+                axs[col].scatter(r * coord_x,
+                                 r * coord_y,
+                                 facecolors=cmap(val),
+                                 edgecolors='k',
+                                 s=100,
+                                 alpha=1.0,
+                                 zorder=2)
 
         if data_to_plot == 'Localization':
             axs[col].scatter(r * coord_x,
@@ -819,8 +834,12 @@ def plotHemisphereMap(titles,
                              c=mkr_cls,
                              marker='D')
             for n in range(NUM_CHANNELS):
-                axs[col].plot([r * coord_x[n], r * loc_data_x[n]], [r * coord_y[n],
-                              r * loc_data_y[n]], color=mkr_cls[n], alpha=0.8, zorder=1, ls=':')
+                axs[col].plot([r * coord_x[n], r * loc_data_x[n]],
+                              [r * coord_y[n], r * loc_data_y[n]],
+                              color=mkr_cls[n],
+                              alpha=0.8,
+                              zorder=1,
+                              ls=':')
 
         if DRAW_CHANNEL_NUMBER:
             for channel in channels:
@@ -881,11 +900,9 @@ def plotHemisphereMap(titles,
     if data_to_plot == 'ConfusionRate':
         savename = 'Hemisphere_QuadrantErrors_' + EXP.upper() + '.pdf'
     if data_to_plot == 'Localization':
-        savename = 'Hemisphere_Localization_' + EXP.upper(
-        ) + '.pdf'
+        savename = 'Hemisphere_Localization_' + EXP.upper() + '.pdf'
     if data_to_plot == 'ResponseTime':
-        savename = 'Hemisphere_ResponseTime_' + EXP.upper(
-        ) + '.pdf'
+        savename = 'Hemisphere_ResponseTime_' + EXP.upper() + '.pdf'
 
     plt.savefig(fname=pjoin(root_dir, 'Figures', savename),
                 bbox_inches='tight')
@@ -893,11 +910,16 @@ def plotHemisphereMap(titles,
     return
 
 
-def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_names, xticklabels, coord_x, coord_y, root_dir):
+def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
+                                  final_dict_names, xticklabels, coord_x,
+                                  coord_y, root_dir):
+
     class median_conf_int:
+
         def __init__(self):
             self.low = 0
             self.high = 0
+
     if EXP == 'Static':
         conditions = final_dict_names[1:]
     if EXP == 'Dynamic':
@@ -908,11 +930,17 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_na
 
     size = 3
     median_idcs = np.array([24, 0, 23, 8, 16, 18, 20, 12, 4])
-    dir_sets = [np.arange(25), np.arange(8), np.array(
-        [1, 2, 9, 10]), np.array([6, 7, 14, 15, 22, 21])]
+    dir_sets = [
+        np.arange(25),
+        np.arange(8),
+        np.array([1, 2, 9, 10]),
+        np.array([6, 7, 14, 15, 22, 21])
+    ]
 
-    fig, axs = plt.subplots(
-        nrows=1, ncols=len(dir_sets), figsize=(len(dir_sets)*size, 1*size), sharey=False)
+    fig, axs = plt.subplots(nrows=1,
+                            ncols=len(dir_sets),
+                            figsize=(len(dir_sets) * size, 1 * size),
+                            sharey=False)
     x_offsets = [1, 2, 3, 4]
 
     for dirs, col in zip(dir_sets, range(len(dir_sets))):
@@ -921,19 +949,23 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_na
         SEC_OFF = 3.0
 
         if POOL_DIR_DATA:
-            data = np.zeros((len(conditions), 16*dirs.size))
+            data = np.zeros((len(conditions), 16 * dirs.size))
             for condition, idx in zip(conditions, range(len(conditions))):
-                data[idx, :] = (time_data[condition]
-                                [:, dirs] - SEC_OFF).flatten()
+                data[idx, :] = (time_data[condition][:, dirs] -
+                                SEC_OFF).flatten()
         else:
             data = np.zeros((len(conditions), 16))
             for condition, idx in zip(conditions, range(len(conditions))):
-                data[idx, :] = np.median(
-                    time_data[condition][:, dirs] - SEC_OFF, axis=1)
+                data[idx, :] = np.median(time_data[condition][:, dirs] -
+                                         SEC_OFF,
+                                         axis=1)
         pairs_to_be_tested = [[1, 2], [1, 3]]
-        pvals, effect_sizes = posthoc_wilcoxon(
-            data, pairs_to_be_tested, alternative_h='two-sided', p_adjust='BH')
-        for dict_name, idx, x_off in zip(conditions, range(len(conditions)), x_offsets):
+        pvals, effect_sizes = posthoc_wilcoxon(data,
+                                               pairs_to_be_tested,
+                                               alternative_h='two-sided',
+                                               p_adjust='BH')
+        for dict_name, idx, x_off in zip(conditions, range(len(conditions)),
+                                         x_offsets):
             if EXP == 'Static' and dict_name == 'StaticOpenEars':
                 continue
             dir_mean_resp_times = data[idx, :]
@@ -941,12 +973,24 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_na
             median_int = median_conf_int()
             median_int.low = np.quantile(dir_mean_resp_times, q=0.25)
             median_int.high = np.quantile(dir_mean_resp_times, q=0.75)
-            asymmetric_IQR = np.array([median_time - median_int.low,
-                                       median_int.high - median_time])[:, None]
-            axs[col].errorbar(x_off, median_time, capsize=2.0, linestyle='none',
-                              xerr=0, yerr=asymmetric_IQR, color='k', zorder=2)
-            axs[col].plot(x_off, median_time, 's', markersize=6, markerfacecolor='white',
-                          markeredgecolor='k', zorder=3)
+            asymmetric_IQR = np.array(
+                [median_time - median_int.low,
+                 median_int.high - median_time])[:, None]
+            axs[col].errorbar(x_off,
+                              median_time,
+                              capsize=2.0,
+                              linestyle='none',
+                              xerr=0,
+                              yerr=asymmetric_IQR,
+                              color='k',
+                              zorder=2)
+            axs[col].plot(x_off,
+                          median_time,
+                          's',
+                          markersize=6,
+                          markerfacecolor='white',
+                          markeredgecolor='k',
+                          zorder=3)
         axs[col].text(1.15, -0.7, s='Real')
         axs[col].text(3, -0.7, s='Virtual')
 
@@ -973,24 +1017,25 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_na
                 brace_start = x_offsets[pairs_to_be_tested[i][0]] + 0.1
                 brace_end = x_offsets[pairs_to_be_tested[i][1]] - 0.1
 
-                axs[col].plot([brace_start, brace_end],
-                              [y_ref, y_ref],
+                axs[col].plot([brace_start, brace_end], [y_ref, y_ref],
                               color='k')
-                axs[col].plot([brace_start, brace_start],
-                              [y_ref, y_ref+0.1],
+                axs[col].plot([brace_start, brace_start], [y_ref, y_ref + 0.1],
                               color='k')
-                axs[col].plot([brace_end, brace_end],
-                              [y_ref, y_ref+0.1],
+                axs[col].plot([brace_end, brace_end], [y_ref, y_ref + 0.1],
                               color='k')
                 axs[col].text((brace_start + brace_end) / 2 + xoffs,
-                              y_ref + yoffs, s=pval_str, fontsize=10)
+                              y_ref + yoffs,
+                              s=pval_str,
+                              fontsize=10)
                 # eff_str = ''
                 if np.abs(effect_sizes[i]) >= 0.75:
                     eff_str = r'$\Delta$'
                     xoffs = -0.075
                     yoffs = 0.1
                     axs[col].text((brace_start + brace_end) / 2 + xoffs,
-                                  y_ref + yoffs, s=eff_str, fontsize=10)
+                                  y_ref + yoffs,
+                                  s=eff_str,
+                                  fontsize=10)
 
         axs[col].set_xlim(0, 5)
         if col == 0:
@@ -999,8 +1044,8 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_na
         axs[col].set_xticks(x_offsets, xticklabels)
         # axs[col].set_yticks(np.arange(0, 11), ['0', '', '2',
         #                    '', '4', '', '6', '', '8', '', '10'])
-        axs[col].set_yticks(np.arange(1, 12), ['1', '', '3',
-                            '', '5', '', '7', '', '9', '', ''])
+        axs[col].set_yticks(np.arange(1, 12),
+                            ['1', '', '3', '', '5', '', '7', '', '9', '', ''])
         # axs[col].set_yticks(np.arange(0, 11))
         axs[col].set_ylim(1, 11)
         axs[col].grid(axis='y')
@@ -1010,10 +1055,14 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names, final_dict_na
         else:
             pos_size_list = [0.015, 0.1, 0.4, 0.4]
 
-        renderInsetAxis(axs[col], dirs, coord_x,
-                        coord_y, pos_size_list, mkr_size=15)
+        renderInsetAxis(axs[col],
+                        dirs,
+                        coord_x,
+                        coord_y,
+                        pos_size_list,
+                        mkr_size=15)
     # plt.show(block=True)
-    plt.savefig(fname=pjoin(
-        root_dir, 'Figures', EXP + '_ResponseTimes_Quantitative.pdf'),
-        bbox_inches='tight')
+    plt.savefig(fname=pjoin(root_dir, 'Figures',
+                            EXP + '_ResponseTimes_Quantitative.pdf'),
+                bbox_inches='tight')
     print('')
