@@ -1,0 +1,1 @@
+This folder hosts precomputed error metrics used by the printErrorMetricTable.py function.
