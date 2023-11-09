@@ -64,7 +64,7 @@ dirset_names = ['Horizontal', 'Frontal', 'Elevated']
 
 # 0 DEG # -30 DEG # 30 DEG # -90 DEG# 90 DEG # 180 DEG # -150 DEG # 150 DEG
 
-#title_bool_list = [True, False, True, False, True, False, False, True]
+# title_bool_list = [True, False, True, False, True, False, False, True]
 title_bool_list = [True, False, True, False, True, False, True, True]
 
 xaxis_bool_list = [False, True, False, True, False, True, True, True]
@@ -121,7 +121,7 @@ def convertAziEleToPlane(azi, ele):
 
 def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
                                final_dict_names, local_azi_ele_data,
-                               targets_azi_ele):
+                               targets_azi_ele, ABS_BIAS):
     NUM_CHANNELS = 25
 
     # dir_sets = [L1_idcs, np.array([0, 24, 23]), np.concatenate((L2_idcs, L3_idcs))]
@@ -181,15 +181,15 @@ def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
                     responses_azi_ele[fb_confusion_idcs, :] = nan_angles[
                         None, :]
 
-                azi_error_cand = targets_azi_ele[tr % NUM_CHANNELS,
-                                                 0] - responses_azi_ele[:, 0]
+                azi_error_cand = responses_azi_ele[:, 0] - targets_azi_ele[tr % NUM_CHANNELS,
+                                                                           0]
                 azi_error_cand[azi_error_cand > 180.0] = 360.0 - \
                     azi_error_cand[azi_error_cand > 180.0]
                 azi_error_cand[azi_error_cand < -180.0] = 360.0 + \
                     azi_error_cand[azi_error_cand < -180.0]
 
-                ele_error_cand = targets_azi_ele[tr % NUM_CHANNELS,
-                                                 1] - responses_azi_ele[:, 1]
+                ele_error_cand = responses_azi_ele[:, 1] - \
+                    targets_azi_ele[tr % NUM_CHANNELS, 1]
 
                 azi_errors.append(azi_error_cand)
                 ele_errors.append(ele_error_cand)
@@ -230,8 +230,12 @@ def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
 
                 azi_error_rms = np.sqrt(np.nanmean(azi_errors_squared, axis=0))
                 ele_error_rms = np.sqrt(np.nanmean(ele_errors_squared, axis=0))
-                azi_bias = np.abs(np.nanmean(azi_errors, axis=0))
-                ele_bias = np.abs(np.nanmean(ele_errors, axis=0))
+                if ABS_BIAS:
+                    azi_bias = np.abs(np.nanmean(azi_errors, axis=0))
+                    ele_bias = np.abs(np.nanmean(ele_errors, axis=0))
+                else:
+                    azi_bias = np.nanmean(azi_errors, axis=0)
+                    ele_bias = np.nanmean(ele_errors, axis=0)
             local_azi_error_rms[dict_name] = azi_error_rms
             local_ele_error_rms[dict_name] = ele_error_rms
             local_azi_bias[dict_name] = azi_bias
@@ -250,8 +254,8 @@ def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
             np.save(file=pjoin(
                 save_dir,
                 EXP + '_' + dirset_name + '_' + metric_name + '.npy'),
-                    arr=metric_data,
-                    allow_pickle=True)
+                arr=metric_data,
+                allow_pickle=True)
     return
 
 
@@ -272,7 +276,7 @@ def loadAndPrintErrorMetric(load_dir, dirset_names):
                 metric_data_all = np.load(file=pjoin(
                     load_dir,
                     EXP + '_' + dirset_name + '_' + metric_name + '.npy'),
-                                          allow_pickle=True)
+                    allow_pickle=True)
                 metric_data_all = metric_data_all.tolist()
 
                 if EXP == 'Static':
@@ -690,7 +694,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
         plt.savefig(fname=pjoin(
             root_dir, 'Figures',
             name + '_VerticalPlane_' + EXP.upper() + '.pdf'),
-                    bbox_inches='tight')
+            bbox_inches='tight')
 
 
 def plotHemisphereMap(titles,

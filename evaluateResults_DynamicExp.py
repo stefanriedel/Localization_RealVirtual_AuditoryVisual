@@ -239,7 +239,7 @@ if SAVE_ERROR_METRICS:
         root_dir,
         'ErrorMetricData',
     ), 'Dynamic', dir_sets, dirset_names, final_dict_names, local_azi_ele_data,
-        targets_azi_ele)
+        targets_azi_ele, ABS_BIAS=False)
 
 mean_azi_ele_data = {dict_name: np.array([]) for dict_name in final_dict_names}
 for dict_name in headphone_dict_names:

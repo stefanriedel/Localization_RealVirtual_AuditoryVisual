@@ -246,7 +246,7 @@ targets_azi_ele = np.copy(target_coord_deg)
 if SAVE_ERROR_METRICS:
     computeAndSaveErrorMetrics(pjoin(root_dir, 'ErrorMetricData'), 'Static',
                                dir_sets, dirset_names, final_dict_names[1:],
-                               local_azi_ele_data, targets_azi_ele)
+                               local_azi_ele_data, targets_azi_ele, ABS_BIAS=False)
     # loadAndPrintErrorMetric(pjoin(root_dir, 'ErrorMetricData'), dirset_names)
 
 # Compute mean data for doubled responses
