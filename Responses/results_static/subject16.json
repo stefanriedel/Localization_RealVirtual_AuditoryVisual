@@ -1,7 +1,7 @@
 {
     "Experiment": "Localization Experiment.",
     "SubjectInformation": {
-        "Subject": "JanBasBollen",
+        "Subject": "Subject16",
         "Age": 62,
         "Gender": "male"
     },
@@ -6834,6 +6834,5 @@
             }
         ]
     },
-    "MushraAppVersion": "0.1.3",
-    "Subject": "Subject16"
+    "MushraAppVersion": "0.1.3"
 }
