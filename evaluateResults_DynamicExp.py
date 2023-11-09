@@ -10,7 +10,7 @@ import scipy.spatial as spatial
 from Utility.localizationEvaluationUtility import *
 
 USE_PIERCINGPOINT_DIRECTION = True
-RENDER_VERTICAL_PLANES = False
+RENDER_VERTICAL_PLANES = True
 RENDER_HEMI_MAP = True
 RENDER_TIME_DATA_PLOT = True
 
@@ -260,18 +260,18 @@ for dict_name in headphone_dict_names:
 if RENDER_TIME_DATA_PLOT:
     EXP = 'Dynamic'
     real_dict_names = ['DynamicOpenEars', 'DynamicOpenHeadphones']
-    xticklabels = ['OE', 'OH',
+    xticklabels = ['REF', 'OH',
                    'KE', 'KU']
     plotResponseTimesQuantitative(
         time_data, EXP, real_dict_names, final_dict_names, xticklabels, coord_x, coord_y, root_dir)
 
 # Vertical plane plots
 if RENDER_VERTICAL_PLANES:
-    titles = ['Open Ears', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
+    titles = ['Reference', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
     EXP = 'Dynamic'
     plot_avg_ele = False
     plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
-                       deg_list, title_bool_list, titles, final_dict_names,
+                       deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele)
 
@@ -291,7 +291,7 @@ for dict_name in final_dict_names:
     mean_unit_vector_data[dict_name][:, 1] = y
     mean_unit_vector_data[dict_name][:, 2] = z
 if RENDER_HEMI_MAP:
-    titles = ['Open Ears', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
+    titles = ['Reference', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
     EXP = 'Dynamic'
     plots = ['Localization', 'ConfusionRate', 'ResponseTime']
     main_titles = [True, False, True]

@@ -10,12 +10,11 @@ import scipy.spatial as spatial
 from Utility.localizationEvaluationUtility import *
 
 USE_PIERCINGPOINT_DIRECTION = True
-RENDER_VERTICAL_PLANES = False
+RENDER_VERTICAL_PLANES = True
 RENDER_HEMI_MAP = True
 RENDER_TIME_DATA_PLOT = True
 
 GEOMETRIC_MEDIAN_RESPONSE = True
-
 SAVE_ERROR_METRICS = True
 
 NUM_CHANNELS = 25
@@ -277,11 +276,11 @@ if RENDER_TIME_DATA_PLOT:
 
 # Vertical plane plots
 if RENDER_VERTICAL_PLANES:
-    titles = ['Open Ears', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
+    titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
     EXP = 'Static'
     plot_avg_ele = False
     plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
-                       deg_list, title_bool_list, titles, final_dict_names,
+                       deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele)
 
@@ -304,7 +303,7 @@ for dict_name in final_dict_names:
 
 # Hemisphere plots
 if RENDER_HEMI_MAP:
-    titles = ['Open Ears', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
+    titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
     EXP = 'Static'
     plots = ['Localization', 'ConfusionRate', 'ResponseTime']
     main_titles = [True, False, True]
