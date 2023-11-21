@@ -305,7 +305,7 @@ def loadAndPrintErrorMetric(load_dir, dirset_names):
                             alternative_h='two-sided',
                             p_adjust=None)
                         significant = pval < 0.05
-                        strong_effect = np.abs(effect_size) > 0.75
+                        strong_effect = np.abs(effect_size) >= 0.75
 
                     if significant and ~strong_effect and dict_name != ref_name:
                         med_mad_string = '\\cellcolor{lightgray!50} ' "%.1f" % np.nanmedian(
