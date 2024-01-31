@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+
 from os.path import dirname, join as pjoin
 from matplotlib import cm
 import matplotlib.colors as colors
@@ -12,12 +14,21 @@ import scipy.stats as stats
 name_list = [
     '0DEG', '-30DEG', '30DEG', '-90DEG', '90DEG', '180DEG', '-150DEG', '150DEG'
 ]
+name_list_azi = [
+    '0DEG', '30DEG', '60DEG'
+]
+
+
 # deg_list = ['0 deg.', '-30 deg.', '30 deg.', '-90 deg.',
 #            '90 deg.', '180 deg.', '-150 deg.', '150 deg.']
 deg_list = [
     r'$0$' + '°', r'$-30$' + '°', r'$30$' + '°', r'$-90$' + '°', r'$90$' + '°',
     r'$180$' + '°', r'$-150$' + '°', r'$150$' + '°'
 ]
+deg_list_azi = [
+    r'$0$' + '°', r'$30$' + '°', r'$60$' + '°'
+]
+
 idcs_list = [
     np.array([25, 1, 24, 9, 17]) - 1,  # 0 DEG
     np.array([8, 23, 16]) - 1,  # -30 DEG
@@ -28,6 +39,13 @@ idcs_list = [
     np.array([6, 14]) - 1,  # -150 DEG
     np.array([4, 12]) - 1  # 150 DEG
 ]
+idcs_list_azi = [
+    np.array([4, 3, 2, 1, 8, 7, 6]) - 1,  # 0 DEG ELE
+    np.array([12, 11, 10, 9, 16, 15, 14]) - 1,  # 30 DEG ELE,
+    np.array([19, 18, 17, 20]) - 1,  # 60 DEG ELE
+]
+
+
 pairtest_list = [
     [[0, 1], [1, 2], [2, 3], [3, 4]],
     [[0, 1], [1, 2]],
@@ -37,6 +55,11 @@ pairtest_list = [
     [[0, 1], [1, 2]],
     [[0, 1]],
     [[0, 1]],
+]
+pairtest_list_azi = [
+    [[0, 1], [1, 2]],
+    [[0, 1], [1, 2]],
+    [[0, 1], [1, 2]]
 ]
 
 target_ele_list = [
@@ -48,6 +71,23 @@ target_ele_list = [
     np.array([0, 30, 60]),
     np.array([0, 30]),
     np.array([0, 30])
+]
+target_azi_list = [
+    np.array([150, 90, 30, 0, -30, -90, -150]),
+    np.array([150, 90, 30, 0, -30, -90, -150]),
+    np.array([180, 90, 0, -90])
+    #np.array([30, 0, -30]),
+]
+
+target_distance_hits = [
+    np.array([np.array([-7.5,7.5]), np.array([-7.5,7.5]), np.array([-7.5,7.5]), np.array([-7.5,15]), np.array([-15,15])]),
+    np.array([np.array([-7.5,7.5]), np.array([-7.5,7.5]), np.array([-7.5,15])]),
+    np.array([np.array([-7.5, 15]), np.array([-15,15])]),
+    np.array([np.array([-7.5,7.5]), np.array([-7.5,7.5]), np.array([-7.5,15]), np.array([-15,15])]),
+    np.array([np.array([-7.5, 15]), np.array([-15,15]), np.array([-15,15])]),
+    np.array([np.array([-7.5, 15]), np.array([-15,15]), np.array([-15,15])]),
+    np.array([np.array([-7.5,15]), np.array([-15,15])]),
+    np.array([np.array([-7.5,15]), np.array([-15,15])]),
 ]
 
 # For error metric table
@@ -66,8 +106,12 @@ dirset_names = ['Horizontal', 'Frontal', 'Elevated']
 
 # title_bool_list = [True, False, True, False, True, False, False, True]
 title_bool_list = [True, False, True, False, True, False, True, True]
+title_bool_list_azi = [True, False, True, False, True, False, True, True]
+
 
 xaxis_bool_list = [False, True, False, True, False, True, True, True]
+xaxis_bool_list_azi = [True, True, True, True, False, True, True, True]
+
 
 all_colors = ['tab:orange'] * 8 + ['tab:red'] * 8 + ['tab:purple'] * 4 + [
     'tab:brown'
@@ -448,9 +492,9 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                        deg_list, title_bool_list, titles, xaxis_bool_list,
                        final_dict_names, local_azi_ele_data, coord_x, coord_y,
                        all_colors, EXP, root_dir, plot_avg_ele):
-    for mvp_idcs, pairs_to_be_tested, target_elevations, name, deg, title_bool, xaxis_bool in zip(
+    for mvp_idcs, pairs_to_be_tested, target_elevations, name, deg, title_bool, xaxis_bool, target_distances in zip(
             idcs_list, pairtest_list, target_ele_list, name_list, deg_list,
-            title_bool_list, xaxis_bool_list):
+            title_bool_list, xaxis_bool_list, target_distance_hits):
         num_rows = 1
         num_cols = 4
         figsize = 3
@@ -497,7 +541,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                           y=-14.5,
                           s=r'$\sigma = $' + str(round(sigma, 1)) + '°',
                           fontsize=10)
-            x = np.linspace(-30, 90, 100)
+            x = np.linspace(-32.5, 90, 100)
             axs[col].plot(x,
                           slope * x + intercept,
                           zorder=0,
@@ -539,6 +583,25 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                     s=15,
                     zorder=2,
                     c=all_colors[mvp_idcs[i]])
+                # Consider only local responses (quadrant errors are nans)
+                elevation_ratings = elevation_ratings[~np.isnan(elevation_ratings)]
+                elevation_distances = elevation_ratings - target_elevations[i]
+                confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
+                confusion_rate = float(confusions.sum()) / float(confusions.size)
+
+                #axs[col].grid(True, zorder=0)
+                #add grid lines manually 
+                axs[col].text(target_elevations[i] - 2, -42, s=str(round(confusion_rate*100)), fontsize=8)
+                axs[col].text(-42, -42, s='CR(%): ', fontsize=8)
+
+                grid_elevations = np.array([-15,0,15,30,60])
+                for i in range(grid_elevations.size):
+                    # horizontal line
+                    axs[col].plot([-45, 90], [grid_elevations[i], grid_elevations[i]], lw=0.5, zorder=0, color='gray')
+                    # vertical line
+                    axs[col].plot([grid_elevations[i], grid_elevations[i]], [-35, 90], lw=0.5, zorder=0, color='gray')
+
+
             for i in range(len(pairs_to_be_tested)):
                 if True:  # significant[i] == True:
                     if pvals[i] >= 0.05:
@@ -589,7 +652,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                                   [-25 + yoff, -22.5 + yoff],
                                   color='k')
 
-            axs[col].plot([-30, 90], [-30, 90], color='grey', zorder=1)
+            axs[col].plot([-32.5, 90], [-32.5, 90], color='grey', zorder=1)
             axs[col].scatter(target_elevations,
                              median_ratings,
                              marker='D',
@@ -598,6 +661,8 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                              facecolors='white',
                              zorder=3,
                              s=30)
+            
+
 
             if col == 0:
                 axs[col].set_ylabel('Elevation Response (deg.)')
@@ -650,8 +715,8 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                               alpha=1,
                               zorder=6)
                 axins.set_aspect('equal')
-            axs[col].set_xlim(-30, 90)
-            axs[col].set_ylim(-30, 90)
+            axs[col].set_xlim(-45, 90)
+            axs[col].set_ylim(-45, 90)
             if xaxis_bool:
                 axs[col].set_xticks([-15, 0, 15, 30, 60])
                 axs[col].set_xlabel('Elevation Target (deg.)')
@@ -662,7 +727,6 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
             axs[col].set_yticks([-15, 0, 15, 30, 60])
             if title_bool:
                 axs[col].set_title(titles[col])
-            axs[col].grid(True)
             axs[col].set_aspect('equal')
             ext.append([
                 axs[col].get_window_extent().x0,
@@ -696,6 +760,174 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
             name + '_VerticalPlane_' + EXP.upper() + '.pdf'),
             bbox_inches='tight')
 
+
+def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
+                       deg_list, title_bool_list, titles, xaxis_bool_list,
+                       final_dict_names, local_azi_ele_data, coord_x, coord_y,
+                       all_colors, EXP, root_dir, plot_avg_ele):
+    for mvp_idcs, pairs_to_be_tested, target_azimuths, name, deg, title_bool, xaxis_bool in zip(
+            idcs_list, pairtest_list, target_azi_list, name_list, deg_list,
+            title_bool_list, xaxis_bool_list):
+        
+        azi_lim = 190
+        num_rows = 1
+        num_cols = 4
+        figsize = 3
+        fig, axs = plt.subplots(nrows=num_rows,
+                                ncols=num_cols,
+                                sharey=True,
+                                figsize=(4 * figsize, 1 * figsize),
+                                gridspec_kw={
+                                    'hspace': 0.1,
+                                    'wspace': 0.05
+                                })
+
+        if EXP == 'Static':
+            conditions = final_dict_names[1:]
+        if EXP == 'Dynamic':
+            conditions = [
+                final_dict_names[0], final_dict_names[1], final_dict_names[3],
+                final_dict_names[2]
+            ]
+
+        ext = []
+        for col, condition in zip(range(num_cols), conditions):
+            median_ratings = np.zeros(target_azimuths.size)
+            azimuth_ratings = []
+
+            
+
+            for i in range(mvp_idcs.size):
+                azimuth_ratings = local_azi_ele_data[condition][
+                    mvp_idcs[i]][:, 0]
+                if col >= 1:
+                    azimuth_ratings = np.concatenate(
+                        (azimuth_ratings,
+                         local_azi_ele_data[condition][mvp_idcs[i] + 25][:,
+                                                                         0]))
+                
+                median_ratings[i] = np.nanmedian(azimuth_ratings)
+                axs[col].scatter(
+                    target_azimuths[i] +
+                    (np.random.rand(azimuth_ratings.size) - 0.5) * (7.5 * 2),
+                    azimuth_ratings,
+                    alpha=0.7,
+                    edgecolors='k',
+                    s=15,
+                    zorder=2,
+                    c=all_colors[mvp_idcs[i]])
+    
+            axs[col].set_xlim(-azi_lim, azi_lim)
+            axs[col].set_ylim(-azi_lim, azi_lim)
+            axs[col].invert_xaxis()
+            axs[col].invert_yaxis()
+            axs[col].plot([azi_lim, -azi_lim], [azi_lim, -azi_lim], color='grey', zorder=1)
+            axs[col].scatter(target_azimuths,
+                             median_ratings,
+                             marker='D',
+                             edgecolors='k',
+                             linewidth=1,
+                             facecolors='white',
+                             zorder=3,
+                             s=30)
+
+            if col == 0:
+                axs[col].set_ylabel('Azimuth Response (deg.)')
+                # axs[col].text(22.5, 80, s='AZI = ' + deg, fontsize=11)
+
+                # inset axes for pictogram of source directions
+                ring_color = 'grey'
+                figsize = 3
+                offs = 0.04
+                r = 0.8
+                # x1, x2, y1, y2 = -1.5, -0.9, -2.5, -1.9  # subregion of the original axis
+                # xlim=(x1, x2), ylim=(y1, y2),
+                axins = axs[col].inset_axes(
+                    # [0.58, 0.01, 0.4, 0.4],
+                    [0.02, 0.585, 0.4, 0.4],
+                    xlim=(-1.05, 1.05),
+                    ylim=(-1.05, 1.05),
+                    xticks=[],
+                    yticks=[],
+                    xticklabels=[],
+                    yticklabels=[])
+
+                # L1 ring
+                phi = np.linspace(0, 2 * np.pi, 100)
+                axins.plot(r * np.cos(phi),
+                           r * np.sin(phi),
+                           alpha=0.3,
+                           color=ring_color,
+                           zorder=5)
+                # L2 ring
+                axins.plot(r * np.cos(phi) * 2 / 3,
+                           r * np.sin(phi) * 2 / 3,
+                           alpha=0.3,
+                           color=ring_color,
+                           zorder=5)
+                # L3 ring
+                axins.plot(r * np.cos(phi) * 1 / 3,
+                           r * np.sin(phi) * 1 / 3,
+                           alpha=0.3,
+                           color=ring_color,
+                           zorder=5)
+                # Loudspeaker coordinates
+                plot_colors = [all_colors[i] for i in mvp_idcs]
+                markeredge_colors = plot_colors
+                axins.scatter(r * coord_x[mvp_idcs],
+                              r * coord_y[mvp_idcs],
+                              facecolors=markeredge_colors,
+                              edgecolors='k',
+                              s=20,
+                              alpha=1,
+                              zorder=6)
+                axins.set_aspect('equal')
+            
+            if xaxis_bool:
+                #axs[col].set_xticks([-30, 0, 30])
+                #[150, 90, 30, 0, -30, -90, -150]
+                axs[col].set_xticks([150, 90, 30, 0, -30, -90, -150])
+                axs[col].set_xlabel('Azimuth Target (deg.)')
+            else:
+                axs[col].set_xticks([150, 90, 30, 0, -30, -90, -150])
+                axs[col].set_xticklabels([])
+
+            axs[col].set_yticks([180, 150, 90, 30, 0, -30, -90, -150, -180])
+            if title_bool:
+                axs[col].set_title(titles[col])
+            axs[col].grid(True)
+            axs[col].set_aspect('equal')
+            ext.append([
+                axs[col].get_window_extent().x0,
+                axs[col].get_window_extent().width
+            ])
+
+        # from the axes bounding boxes calculate the optimal position of the column spanning title
+        inv = fig.transFigure.inverted()
+        width_left = ext[0][0] + (ext[1][0] + ext[1][1] - ext[0][0]) / 2.
+        left_center = inv.transform((width_left, 1))
+        width_right = ext[2][0] + (ext[3][0] + ext[3][1] - ext[2][0]) / 2.
+        right_center = inv.transform((width_right, 1))
+
+        if title_bool:
+            plt.figtext(left_center[0],
+                        0.98,
+                        "---- Real (" + EXP + ") ----",
+                        va="center",
+                        ha="center",
+                        size=14)
+            plt.figtext(right_center[0],
+                        0.98,
+                        "---- Virtual (" + EXP + ") ----",
+                        va="center",
+                        ha="center",
+                        size=14)
+
+        #plt.show(block=True)
+        plt.savefig(fname=pjoin(
+            root_dir, 'Figures',
+            name + '_LateralPlane_' + EXP.upper() + '.pdf'),
+            bbox_inches='tight')
 
 def plotHemisphereMap(titles,
                       final_dict_names,

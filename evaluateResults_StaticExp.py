@@ -10,9 +10,13 @@ import scipy.spatial as spatial
 from Utility.localizationEvaluationUtility import *
 
 USE_PIERCINGPOINT_DIRECTION = True
+
+
+RENDER_LATERAL_PLANES = False
 RENDER_VERTICAL_PLANES = True
-RENDER_HEMI_MAP = True
-RENDER_TIME_DATA_PLOT = True
+
+RENDER_HEMI_MAP = False
+RENDER_TIME_DATA_PLOT = False
 
 GEOMETRIC_MEDIAN_RESPONSE = True
 SAVE_ERROR_METRICS = True
@@ -21,6 +25,7 @@ NUM_CHANNELS = 25
 
 # Tolerance around target direction to consider as hit
 # Otherwise it is a 'quadrant error'
+#ANGLE_TOL = 90.0 / 180.0 * np.pi
 ANGLE_TOL = 90.0 / 180.0 * np.pi
 
 # Opening JSON file
@@ -274,13 +279,23 @@ if RENDER_TIME_DATA_PLOT:
     plotResponseTimesQuantitative(
         time_data, EXP, real_dict_names, final_dict_names, xticklabels, coord_x, coord_y, root_dir)
 
+# Lateral plane plots
+if RENDER_LATERAL_PLANES:
+    titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
+    EXP = 'Static'
+    plot_avg_ele = False
+    plotLateralPlanes(idcs_list_azi, pairtest_list_azi, target_azi_list, name_list,
+                       deg_list_azi, title_bool_list, titles, xaxis_bool_list, final_dict_names,
+                       local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
+                       root_dir, plot_avg_ele)
+
 # Vertical plane plots
 if RENDER_VERTICAL_PLANES:
     titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
     EXP = 'Static'
     plot_avg_ele = False
     plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
-                       deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
+                       deg_list, title_bool_list_azi, titles, xaxis_bool_list_azi, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele)
 
