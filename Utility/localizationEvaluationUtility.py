@@ -117,6 +117,8 @@ all_colors = ['tab:orange'] * 8 + ['tab:red'] * 8 + ['tab:purple'] * 4 + [
     'tab:brown'
 ] + ['tab:green'] * 3 + ['tab:blue']
 
+all_colors_hex_alpha = ['#ffbf86'] * 8 + ['#ea9393'] * 8 + ['#c9b3de'] * 4 + ['#c5aaa5']  + ['#95cf95'] * 3 + ['#8fbbd9']
+
 
 def MAD(data):
     return np.nanmedian(np.abs(data - np.nanmedian(data)))
@@ -439,7 +441,7 @@ def renderInsetAxis(ax,
                     pos_size_list,
                     mkr_size=15):
     # inset axes for pictogram of source directions
-    ring_color = 'grey'
+    ring_color = 'lightgrey'
     figsize = 3
     offs = 0.04
     r = 0.8
@@ -460,19 +462,19 @@ def renderInsetAxis(ax,
     phi = np.linspace(0, 2 * np.pi, 100)
     axins.plot(r * np.cos(phi),
                r * np.sin(phi),
-               alpha=0.3,
+               #alpha=0.3,
                color=ring_color,
                zorder=5)
     # L2 ring
     axins.plot(r * np.cos(phi) * 2 / 3,
                r * np.sin(phi) * 2 / 3,
-               alpha=0.3,
+               #alpha=0.3,
                color=ring_color,
                zorder=5)
     # L3 ring
     axins.plot(r * np.cos(phi) * 1 / 3,
                r * np.sin(phi) * 1 / 3,
-               alpha=0.3,
+               #alpha=0.3,
                color=ring_color,
                zorder=5)
     # Loudspeaker coordinates
@@ -501,7 +503,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
         fig, axs = plt.subplots(nrows=num_rows,
                                 ncols=num_cols,
                                 sharey=True,
-                                figsize=(4 * figsize, 1 * figsize),
+                                figsize=(4 * figsize, 1.1 * figsize),
                                 gridspec_kw={
                                     'hspace': 0.1,
                                     'wspace': 0.05
@@ -533,14 +535,16 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
 
             slope, intercept, sigma, bias = computeMetrics(
                 conditions_ele, target_elevations, median_statistic=True)
-            axs[col].text(x=55,
-                          y=-6,
+            axs[col].text(x=48,
+                          y=3,
                           s=r'$g = $' + str(round(slope, 2)),
                           fontsize=10)
+            """
             axs[col].text(x=55,
                           y=-14.5,
                           s=r'$\sigma = $' + str(round(sigma, 1)) + '°',
                           fontsize=10)
+            """
             x = np.linspace(-32.5, 90, 100)
             axs[col].plot(x,
                           slope * x + intercept,
@@ -563,6 +567,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 print(condition + ' effect: ' + str(effect_sizes))
                 print('')
 
+            confusion_rates = np.zeros(mvp_idcs.size)
             for i in range(mvp_idcs.size):
                 elevation_ratings = local_azi_ele_data[condition][
                     mvp_idcs[i]][:, 1]
@@ -578,7 +583,6 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                     target_elevations[i] +
                     (np.random.rand(elevation_ratings.size) - 0.5) * 7.5,
                     elevation_ratings,
-                    alpha=0.7,
                     edgecolors='k',
                     s=15,
                     zorder=2,
@@ -589,18 +593,25 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
                 confusion_rate = float(confusions.sum()) / float(confusions.size)
 
+                confusion_rates[i] = confusion_rate
+
                 #axs[col].grid(True, zorder=0)
                 #add grid lines manually 
-                axs[col].text(target_elevations[i] - 2, -42, s=str(round(confusion_rate*100)), fontsize=8)
-                axs[col].text(-42, -42, s='CR(%): ', fontsize=8)
-
+                axs[col].text(-44, -42, s='CR(%):', fontsize=9, style='italic')
+                axs[col].text(target_elevations[i] - 2, -42, s=str(round(confusion_rate*100)), fontsize=9, style='italic')
+      
                 grid_elevations = np.array([-15,0,15,30,60])
                 for i in range(grid_elevations.size):
                     # horizontal line
-                    axs[col].plot([-45, 90], [grid_elevations[i], grid_elevations[i]], lw=0.5, zorder=0, color='gray')
+                    axs[col].plot([-45, 90], [grid_elevations[i], grid_elevations[i]], zorder=0, lw=0.5, color='gray', ls=(0, (1, 1)))
                     # vertical line
-                    axs[col].plot([grid_elevations[i], grid_elevations[i]], [-35, 90], lw=0.5, zorder=0, color='gray')
+                    axs[col].plot([grid_elevations[i], grid_elevations[i]], [-35, 90], zorder=0, lw=0.5, color='gray', ls=(0, (1, 1)))
+                #axs[col].set_rasterization_zorder(0) # Rasterize the manual grid lines
 
+            axs[col].text(x=48,
+                    y=-13,
+                    s=r'$\overline{\mathrm{CR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
+                    fontsize=10)
 
             for i in range(len(pairs_to_be_tested)):
                 if True:  # significant[i] == True:
@@ -666,55 +677,12 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
 
             if col == 0:
                 axs[col].set_ylabel('Elevation Response (deg.)')
-                # axs[col].text(22.5, 80, s='AZI = ' + deg, fontsize=11)
-
-                # inset axes for pictogram of source directions
-                ring_color = 'grey'
-                figsize = 3
-                offs = 0.04
-                r = 0.8
-                # x1, x2, y1, y2 = -1.5, -0.9, -2.5, -1.9  # subregion of the original axis
-                # xlim=(x1, x2), ylim=(y1, y2),
-                axins = axs[col].inset_axes(
-                    # [0.58, 0.01, 0.4, 0.4],
-                    [0.02, 0.585, 0.4, 0.4],
-                    xlim=(-1.05, 1.05),
-                    ylim=(-1.05, 1.05),
-                    xticks=[],
-                    yticks=[],
-                    xticklabels=[],
-                    yticklabels=[])
-
-                # L1 ring
-                phi = np.linspace(0, 2 * np.pi, 100)
-                axins.plot(r * np.cos(phi),
-                           r * np.sin(phi),
-                           alpha=0.3,
-                           color=ring_color,
-                           zorder=5)
-                # L2 ring
-                axins.plot(r * np.cos(phi) * 2 / 3,
-                           r * np.sin(phi) * 2 / 3,
-                           alpha=0.3,
-                           color=ring_color,
-                           zorder=5)
-                # L3 ring
-                axins.plot(r * np.cos(phi) * 1 / 3,
-                           r * np.sin(phi) * 1 / 3,
-                           alpha=0.3,
-                           color=ring_color,
-                           zorder=5)
-                # Loudspeaker coordinates
-                plot_colors = [all_colors[i] for i in mvp_idcs]
-                markeredge_colors = plot_colors
-                axins.scatter(r * coord_x[mvp_idcs],
-                              r * coord_y[mvp_idcs],
-                              facecolors=markeredge_colors,
-                              edgecolors='k',
-                              s=20,
-                              alpha=1,
-                              zorder=6)
-                axins.set_aspect('equal')
+                renderInsetAxis(axs[col],
+                        mvp_idcs,
+                        coord_x,
+                        coord_y,
+                        [0.02, 0.585, 0.4, 0.4],
+                        mkr_size=20)
             axs[col].set_xlim(-45, 90)
             axs[col].set_ylim(-45, 90)
             if xaxis_bool:
@@ -722,7 +690,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 axs[col].set_xlabel('Elevation Target (deg.)')
             else:
                 axs[col].set_xticks([-15, 0, 15, 30, 60])
-                axs[col].set_xticklabels([])
+                #axs[col].set_xticklabels([])
 
             axs[col].set_yticks([-15, 0, 15, 30, 60])
             if title_bool:
@@ -754,11 +722,10 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                         ha="center",
                         size=14)
 
-        # plt.show(block=True)
+        #plt.show(block=True)
         plt.savefig(fname=pjoin(
             root_dir, 'Figures',
-            name + '_VerticalPlane_' + EXP.upper() + '.pdf'),
-            bbox_inches='tight')
+            name + '_VerticalPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
 
 
 def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
@@ -833,55 +800,12 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
 
             if col == 0:
                 axs[col].set_ylabel('Azimuth Response (deg.)')
-                # axs[col].text(22.5, 80, s='AZI = ' + deg, fontsize=11)
-
-                # inset axes for pictogram of source directions
-                ring_color = 'grey'
-                figsize = 3
-                offs = 0.04
-                r = 0.8
-                # x1, x2, y1, y2 = -1.5, -0.9, -2.5, -1.9  # subregion of the original axis
-                # xlim=(x1, x2), ylim=(y1, y2),
-                axins = axs[col].inset_axes(
-                    # [0.58, 0.01, 0.4, 0.4],
-                    [0.02, 0.585, 0.4, 0.4],
-                    xlim=(-1.05, 1.05),
-                    ylim=(-1.05, 1.05),
-                    xticks=[],
-                    yticks=[],
-                    xticklabels=[],
-                    yticklabels=[])
-
-                # L1 ring
-                phi = np.linspace(0, 2 * np.pi, 100)
-                axins.plot(r * np.cos(phi),
-                           r * np.sin(phi),
-                           alpha=0.3,
-                           color=ring_color,
-                           zorder=5)
-                # L2 ring
-                axins.plot(r * np.cos(phi) * 2 / 3,
-                           r * np.sin(phi) * 2 / 3,
-                           alpha=0.3,
-                           color=ring_color,
-                           zorder=5)
-                # L3 ring
-                axins.plot(r * np.cos(phi) * 1 / 3,
-                           r * np.sin(phi) * 1 / 3,
-                           alpha=0.3,
-                           color=ring_color,
-                           zorder=5)
-                # Loudspeaker coordinates
-                plot_colors = [all_colors[i] for i in mvp_idcs]
-                markeredge_colors = plot_colors
-                axins.scatter(r * coord_x[mvp_idcs],
-                              r * coord_y[mvp_idcs],
-                              facecolors=markeredge_colors,
-                              edgecolors='k',
-                              s=20,
-                              alpha=1,
-                              zorder=6)
-                axins.set_aspect('equal')
+                renderInsetAxis(axs[col],
+                        mvp_idcs,
+                        coord_x,
+                        coord_y,
+                        [0.02, 0.585, 0.4, 0.4],
+                        mkr_size=20)
             
             if xaxis_bool:
                 #axs[col].set_xticks([-30, 0, 30])

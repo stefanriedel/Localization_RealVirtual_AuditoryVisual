@@ -295,7 +295,7 @@ if RENDER_VERTICAL_PLANES:
     EXP = 'Static'
     plot_avg_ele = False
     plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
-                       deg_list, title_bool_list_azi, titles, xaxis_bool_list_azi, final_dict_names,
+                       deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele)
 

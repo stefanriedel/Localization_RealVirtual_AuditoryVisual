@@ -10,9 +10,13 @@ import scipy.spatial as spatial
 from Utility.localizationEvaluationUtility import *
 
 USE_PIERCINGPOINT_DIRECTION = True
+
+
+RENDER_LATERAL_PLANES = False
 RENDER_VERTICAL_PLANES = True
-RENDER_HEMI_MAP = True
-RENDER_TIME_DATA_PLOT = True
+
+RENDER_HEMI_MAP = False
+RENDER_TIME_DATA_PLOT = False
 
 GEOMETRIC_MEDIAN_RESPONSE = True
 SAVE_ERROR_METRICS = True
