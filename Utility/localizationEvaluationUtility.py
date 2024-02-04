@@ -90,6 +90,10 @@ target_distance_hits = [
     np.array([np.array([-7.5,15]), np.array([-15,15])]),
 ]
 
+
+SEC_OFF = 3.0
+NORM_SEC = 10.0
+
 # For error metric table
 NUM_CHANNELS = 25
 L1_idcs = np.arange(8)
@@ -568,6 +572,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 print('')
 
             confusion_rates = np.zeros(mvp_idcs.size)
+            all_elevation_ratings = []
             for i in range(mvp_idcs.size):
                 elevation_ratings = local_azi_ele_data[condition][
                     mvp_idcs[i]][:, 1]
@@ -587,15 +592,17 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                     s=15,
                     zorder=2,
                     c=all_colors[mvp_idcs[i]])
+                #axs[col].violinplot(dataset=elevation_ratings, positions=[target_elevations[i]])
                 # Consider only local responses (quadrant errors are nans)
                 elevation_ratings = elevation_ratings[~np.isnan(elevation_ratings)]
+                all_elevation_ratings.append(elevation_ratings)
+
                 elevation_distances = elevation_ratings - target_elevations[i]
                 confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
                 confusion_rate = float(confusions.sum()) / float(confusions.size)
 
                 confusion_rates[i] = confusion_rate
 
-                #axs[col].grid(True, zorder=0)
                 #add grid lines manually 
                 axs[col].text(-44, -42, s='CR(%):', fontsize=9, style='italic')
                 axs[col].text(target_elevations[i] - 2, -42, s=str(round(confusion_rate*100)), fontsize=9, style='italic')
@@ -606,8 +613,9 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                     axs[col].plot([-45, 90], [grid_elevations[i], grid_elevations[i]], zorder=0, lw=0.5, color='gray', ls=(0, (1, 1)))
                     # vertical line
                     axs[col].plot([grid_elevations[i], grid_elevations[i]], [-35, 90], zorder=0, lw=0.5, color='gray', ls=(0, (1, 1)))
-                #axs[col].set_rasterization_zorder(0) # Rasterize the manual grid lines
+                
 
+            #axs[col].violinplot(dataset=all_elevation_ratings, positions=target_elevations, widths=20, bw_method=0.25)
             axs[col].text(x=48,
                     y=-13,
                     s=r'$\overline{\mathrm{CR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
@@ -722,7 +730,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                         ha="center",
                         size=14)
 
-        #plt.show(block=True)
+        plt.show(block=True)
         plt.savefig(fname=pjoin(
             root_dir, 'Figures',
             name + '_VerticalPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
@@ -884,7 +892,6 @@ def plotHemisphereMap(titles,
 
     DRAW_CHANNEL_NUMBER = False
     NORM_RATE = 50  # Confusion Norm Constant
-    NORM_SEC = 10.0  # Time Norm Constant
 
     if data_to_plot == 'ResponseTime':
         cmap = cm.get_cmap('afmhot_r')
@@ -963,7 +970,7 @@ def plotHemisphereMap(titles,
                 continue
             else:
                 val = (np.median(time_data[condition], axis=0) -
-                       3.0) / NORM_SEC
+                       SEC_OFF) / NORM_SEC
                 axs[col].scatter(r * coord_x,
                                  r * coord_y,
                                  facecolors=cmap(val),
@@ -1051,11 +1058,12 @@ def plotHemisphereMap(titles,
         cbar.set_label('Quadrant Errors (%)', rotation=0)
     if data_to_plot == 'ResponseTime':
         color_bar_ax = fig.add_axes([0.41, 0.05, 0.2, 0.05])
-        norm = colors.Normalize(vmin=0, vmax=NORM_SEC, clip=True)
+        norm = colors.Normalize(vmin=SEC_OFF, vmax=NORM_SEC+SEC_OFF, clip=True)
         cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap),
                             cax=color_bar_ax,
                             orientation="horizontal")
         cbar.set_label('Median Response Time (sec.)', rotation=0)
+        cbar.set_ticks(np.arange(3,14))
 
     if data_to_plot == 'ConfusionRate':
         savename = 'Hemisphere_QuadrantErrors_' + EXP.upper() + '.pdf'
@@ -1106,7 +1114,7 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
     for dirs, col in zip(dir_sets, range(len(dir_sets))):
 
         POOL_DIR_DATA = False
-        SEC_OFF = 3.0
+        #SEC_OFF = 3.0
 
         if POOL_DIR_DATA:
             data = np.zeros((len(conditions), 16 * dirs.size))
