@@ -91,6 +91,7 @@ target_distance_hits = [
 ]
 
 
+
 SEC_OFF = 3.0
 NORM_SEC = 10.0
 
@@ -598,7 +599,14 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 all_elevation_ratings.append(elevation_ratings)
 
                 elevation_distances = elevation_ratings - target_elevations[i]
-                confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
+
+                if target_elevations[i] >= 60.0:
+                    target_distances_fixed = np.array([-15.0, 15.0])
+                else:
+                    target_distances_fixed = np.array([-7.5, 7.5])
+
+                #confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
+                confusions = np.logical_or(elevation_distances < target_distances_fixed[0],  elevation_distances > target_distances_fixed[1])
                 confusion_rate = float(confusions.sum()) / float(confusions.size)
 
                 confusion_rates[i] = confusion_rate
@@ -730,7 +738,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                         ha="center",
                         size=14)
 
-        plt.show(block=True)
+        #plt.show(block=True)
         plt.savefig(fname=pjoin(
             root_dir, 'Figures',
             name + '_VerticalPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
@@ -1119,14 +1127,11 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
         if POOL_DIR_DATA:
             data = np.zeros((len(conditions), 16 * dirs.size))
             for condition, idx in zip(conditions, range(len(conditions))):
-                data[idx, :] = (time_data[condition][:, dirs] -
-                                SEC_OFF).flatten()
+                data[idx, :] = (time_data[condition][:, dirs]).flatten()
         else:
             data = np.zeros((len(conditions), 16))
             for condition, idx in zip(conditions, range(len(conditions))):
-                data[idx, :] = np.median(time_data[condition][:, dirs] -
-                                         SEC_OFF,
-                                         axis=1)
+                data[idx, :] = np.median(time_data[condition][:, dirs], axis=1)
         pairs_to_be_tested = [[1, 2], [1, 3]]
         pvals, effect_sizes = posthoc_wilcoxon(data,
                                                pairs_to_be_tested,
@@ -1159,10 +1164,10 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
                           markerfacecolor='white',
                           markeredgecolor='k',
                           zorder=3)
-        axs[col].text(1.15, -0.7, s='Real')
-        axs[col].text(3, -0.7, s='Virtual')
+        axs[col].text(1.15, -0.7 + 3.0, s='Real')
+        axs[col].text(3, -0.7 + 3.0, s='Virtual')
 
-        y_refs = [2, 1.5]
+        y_refs = [2 + 3.0, 1.5 + 3.0]
         for i, y_ref in zip(range(len(pairs_to_be_tested)), y_refs):
             # if not dict_name == 'DynamicOpenEars':
             if dict_name not in real_dict_names:
@@ -1212,10 +1217,11 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
         axs[col].set_xticks(x_offsets, xticklabels)
         # axs[col].set_yticks(np.arange(0, 11), ['0', '', '2',
         #                    '', '4', '', '6', '', '8', '', '10'])
-        axs[col].set_yticks(np.arange(1, 12),
-                            ['1', '', '3', '', '5', '', '7', '', '9', '', ''])
-        # axs[col].set_yticks(np.arange(0, 11))
-        axs[col].set_ylim(1, 11)
+        #axs[col].set_yticks(np.arange(1, 12),
+        #                    ['1', '', '3', '', '5', '', '7', '', '9', '', ''])
+        axs[col].set_yticks(np.arange(4, 14))
+        # axs[col].set_ylim(1, 11)
+        axs[col].set_ylim(4, 14)
         axs[col].grid(axis='y')
 
         if EXP == 'Dynamic':
