@@ -11,9 +11,10 @@ from Utility.localizationEvaluationUtility import *
 
 USE_PIERCINGPOINT_DIRECTION = True
 
+RENDER_LATERAL_PLANES = True
+ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
-RENDER_LATERAL_PLANES = False
-RENDER_VERTICAL_PLANES = True
+RENDER_VERTICAL_PLANES = False
 
 RENDER_HEMI_MAP = False
 RENDER_TIME_DATA_PLOT = False
@@ -285,9 +286,9 @@ if RENDER_LATERAL_PLANES:
     EXP = 'Static'
     plot_avg_ele = False
     plotLateralPlanes(idcs_list_azi, pairtest_list_azi, target_azi_list, name_list,
-                       deg_list_azi, title_bool_list, titles, xaxis_bool_list, final_dict_names,
+                       deg_list_azi, title_bool_list_azi, titles, xaxis_bool_list_azi, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
-                       root_dir, plot_avg_ele)
+                       root_dir, plot_avg_ele, ALL_PLANES)
 
 # Vertical plane plots
 if RENDER_VERTICAL_PLANES:

@@ -40,8 +40,8 @@ idcs_list = [
     np.array([4, 12]) - 1  # 150 DEG
 ]
 idcs_list_azi = [
-    np.array([4, 3, 2, 1, 8, 7, 6]) - 1,  # 0 DEG ELE
-    np.array([12, 11, 10, 9, 16, 15, 14]) - 1,  # 30 DEG ELE,
+    np.array([5, 4, 3, 2, 1, 8, 7, 6]) - 1,  # 0 DEG ELE
+    np.array([13, 12, 11, 10, 9, 16, 15, 14]) - 1,  # 30 DEG ELE,
     np.array([19, 18, 17, 20]) - 1,  # 60 DEG ELE
 ]
 
@@ -73,8 +73,8 @@ target_ele_list = [
     np.array([0, 30])
 ]
 target_azi_list = [
-    np.array([150, 90, 30, 0, -30, -90, -150]),
-    np.array([150, 90, 30, 0, -30, -90, -150]),
+    np.array([180, 150, 90, 30, 0, -30, -90, -150]),
+    np.array([180, 150, 90, 30, 0, -30, -90, -150]),
     np.array([180, 90, 0, -90])
     #np.array([30, 0, -30]),
 ]
@@ -90,6 +90,11 @@ target_distance_hits = [
     np.array([np.array([-7.5,15]), np.array([-15,15])]),
 ]
 
+target_distance_hits_azi = [
+    np.array([np.array([-15,15]), np.array([-30,15]), np.array([-30,30]), np.array([-15,30]), np.array([-15,15]),  np.array([-30,15]),  np.array([-30,30]), np.array([-15,30])]),
+    np.array([np.array([-15,15]), np.array([-30,15]), np.array([-30,30]), np.array([-15,30]), np.array([-15,15]),  np.array([-30,15]),  np.array([-30,30]), np.array([-15,30])]),
+    np.array([np.array([-45, 45]), np.array([-45, 45]), np.array([-45, 45]), np.array([-45, 45])]),
+]
 
 
 SEC_OFF = 3.0
@@ -111,11 +116,11 @@ dirset_names = ['Horizontal', 'Frontal', 'Elevated']
 
 # title_bool_list = [True, False, True, False, True, False, False, True]
 title_bool_list = [True, False, True, False, True, False, True, True]
-title_bool_list_azi = [True, False, True, False, True, False, True, True]
+title_bool_list_azi = [False, True, True]
 
 
 xaxis_bool_list = [False, True, False, True, False, True, True, True]
-xaxis_bool_list_azi = [True, True, True, True, False, True, True, True]
+xaxis_bool_list_azi = [True, True, True]
 
 
 all_colors = ['tab:orange'] * 8 + ['tab:red'] * 8 + ['tab:purple'] * 4 + [
@@ -605,8 +610,8 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 else:
                     target_distances_fixed = np.array([-7.5, 7.5])
 
-                #confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
-                confusions = np.logical_or(elevation_distances < target_distances_fixed[0],  elevation_distances > target_distances_fixed[1])
+                confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
+                #confusions = np.logical_or(elevation_distances < target_distances_fixed[0],  elevation_distances > target_distances_fixed[1])
                 confusion_rate = float(confusions.sum()) / float(confusions.size)
 
                 confusion_rates[i] = confusion_rate
@@ -618,9 +623,9 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 grid_elevations = np.array([-15,0,15,30,60])
                 for i in range(grid_elevations.size):
                     # horizontal line
-                    axs[col].plot([-45, 90], [grid_elevations[i], grid_elevations[i]], zorder=0, lw=0.5, color='gray', ls=(0, (1, 1)))
+                    axs[col].plot([-45, 90], [grid_elevations[i], grid_elevations[i]], zorder=0, lw=0.5, color='gray', ls=(0, (1, 3)))
                     # vertical line
-                    axs[col].plot([grid_elevations[i], grid_elevations[i]], [-35, 90], zorder=0, lw=0.5, color='gray', ls=(0, (1, 1)))
+                    axs[col].plot([grid_elevations[i], grid_elevations[i]], [-35, 90], zorder=0, lw=0.5, color='gray', ls=(0, (1, 3)))
                 
 
             #axs[col].violinplot(dataset=all_elevation_ratings, positions=target_elevations, widths=20, bw_method=0.25)
@@ -747,23 +752,49 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
 def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                        deg_list, title_bool_list, titles, xaxis_bool_list,
                        final_dict_names, local_azi_ele_data, coord_x, coord_y,
-                       all_colors, EXP, root_dir, plot_avg_ele):
-    for mvp_idcs, pairs_to_be_tested, target_azimuths, name, deg, title_bool, xaxis_bool in zip(
-            idcs_list, pairtest_list, target_azi_list, name_list, deg_list,
-            title_bool_list, xaxis_bool_list):
-        
-        azi_lim = 190
-        num_rows = 1
-        num_cols = 4
-        figsize = 3
+                       all_colors, EXP, root_dir, plot_avg_ele, ALL_PLANES):
+    
+
+    num_rows = 1
+    num_cols = 4
+    figsize = 3
+
+    if ALL_PLANES:
         fig, axs = plt.subplots(nrows=num_rows,
                                 ncols=num_cols,
                                 sharey=True,
-                                figsize=(4 * figsize, 1 * figsize),
+                                figsize=(4 * figsize, 1.1 * figsize),
                                 gridspec_kw={
                                     'hspace': 0.1,
                                     'wspace': 0.05
                                 })
+    
+    layer_idx = 0
+    zorder_layers = [4,3,2]
+
+    if ALL_PLANES:
+        x_offs = np.array([1,0,-1]) * 7.5
+    else:
+        x_offs = np.array([0,0,0])
+
+
+    all_confusion_rates = [[],[],[],[]]
+    for mvp_idcs, pairs_to_be_tested, target_azimuths, name, deg, title_bool, xaxis_bool, target_distances in zip(
+            idcs_list, pairtest_list, target_azi_list, name_list_azi, deg_list,
+            title_bool_list, xaxis_bool_list, target_distance_hits_azi):
+        
+        azi_lim = 190
+        azi_lim_pos_x = 230
+
+        if not ALL_PLANES:
+            fig, axs = plt.subplots(nrows=num_rows,
+                                    ncols=num_cols,
+                                    sharey=True,
+                                    figsize=(4 * figsize, 1.1 * figsize),
+                                    gridspec_kw={
+                                        'hspace': 0.1,
+                                        'wspace': 0.05
+                                    })
 
         if EXP == 'Static':
             conditions = final_dict_names[1:]
@@ -778,51 +809,109 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
             median_ratings = np.zeros(target_azimuths.size)
             azimuth_ratings = []
 
-            
+            if not ALL_PLANES:
+                conditions_azi = np.asarray(
+                    local_azi_ele_data[condition])[mvp_idcs, :, 0]
+                if col >= 1:
+                    cond_azi_first = np.asarray(
+                        local_azi_ele_data[condition])[mvp_idcs, :, 0]
+                    cond_azi_second = np.asarray(
+                        local_azi_ele_data[condition])[mvp_idcs + 25, :, 0]
+                    stacked = np.array([cond_azi_first, cond_azi_second])
+                    conditions_azi = np.nanmean(stacked, axis=0)
+                    
+                conditions_azi[conditions_azi < -170.0] = (conditions_azi[conditions_azi < -170.0] + 360.0) % 360.0
+                slope, intercept, sigma, bias = computeMetrics(
+                conditions_azi, target_azimuths, median_statistic=True)
+                axs[col].text(x=-30,
+                            y=90,
+                            s=r'$g = $' + str(round(slope, 2)),
+                            fontsize=10)
+                x = np.linspace(180, -180, 100)
+                axs[col].plot(x,
+                            slope * x + intercept,
+                            zorder=0,
+                            color='gray',
+                            ls=':')
 
+            confusion_rates = np.zeros(mvp_idcs.size)
             for i in range(mvp_idcs.size):
                 azimuth_ratings = local_azi_ele_data[condition][
                     mvp_idcs[i]][:, 0]
-                if col >= 1:
-                    azimuth_ratings = np.concatenate(
-                        (azimuth_ratings,
-                         local_azi_ele_data[condition][mvp_idcs[i] + 25][:,
-                                                                         0]))
                 
                 median_ratings[i] = np.nanmedian(azimuth_ratings)
+
+                azimuth_scatter = np.copy(azimuth_ratings)
+                azimuth_scatter[azimuth_ratings < -170.0] = (azimuth_scatter[azimuth_ratings < -170.0] + 360.0) % 360.0
                 axs[col].scatter(
                     target_azimuths[i] +
-                    (np.random.rand(azimuth_ratings.size) - 0.5) * (7.5 * 2),
-                    azimuth_ratings,
-                    alpha=0.7,
+                    (np.random.rand(azimuth_ratings.size) - 0.5) * (2.5 * 1) + x_offs[layer_idx],
+                    azimuth_scatter,
+                    alpha=1.0,
                     edgecolors='k',
                     s=15,
-                    zorder=2,
+                    zorder=zorder_layers[layer_idx],
                     c=all_colors[mvp_idcs[i]])
-    
-            axs[col].set_xlim(-azi_lim, azi_lim)
-            axs[col].set_ylim(-azi_lim, azi_lim)
+                
+                azimuth_ratings = azimuth_ratings[~np.isnan(azimuth_ratings)]
+                if target_azimuths[i] == 180:
+                    azimuth_ratings = (azimuth_ratings + 360.0) % 360.0 
+                azimuth_distances = azimuth_ratings - target_azimuths[i]
+                confusions = np.logical_or(azimuth_distances < target_distances[i,0],  azimuth_distances > target_distances[i,1])
+                #confusions = np.logical_or(azimuth_distances < target_distances_fixed[0],  azimuth_distances > target_distances_fixed[1])
+                confusion_rate = float(confusions.sum()) / float(confusions.size)
+                confusion_rates[i] = confusion_rate
+
+                # Confusion rates per direction
+                if not ALL_PLANES:
+                    axs[col].text(225, 220, s='CR:', fontsize=9, style='italic')
+                    axs[col].text(target_azimuths[i] - 2, 220, s=str(round(confusion_rate*100)), fontsize=9, style='italic')
+            all_confusion_rates[col].append(confusion_rates)
+
+            if not ALL_PLANES:
+                axs[col].text(x=-30,
+                        y=150,
+                        s=r'$\overline{\mathrm{CR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
+                        fontsize=10)
+                # axs[col].scatter(target_azimuths,
+                #                  median_ratings,
+                #                  marker='D',
+                #                  edgecolors='k',
+                #                  linewidth=1,
+                #                  facecolors='white',
+                #                  zorder=5,
+                #                  s=30)
+                if col == 0:
+                    axs[col].set_ylabel('Azimuth Response (deg.)')
+                    renderInsetAxis(axs[col],
+                            mvp_idcs,
+                            coord_x,
+                            coord_y,
+                            [0.02, 0.585, 0.4, 0.4],
+                            mkr_size=20)
+            else:
+                if col == 0 and layer_idx == 0: # plot only once all LS directions
+                    axs[col].set_ylabel('Azimuth Response (deg.)')
+                    renderInsetAxis(axs[col],
+                            np.arange(20),
+                            coord_x,
+                            coord_y,
+                            [0.02, 0.585, 0.4, 0.4],
+                            mkr_size=20)
+                
+            grid_azimuths = np.array([180, 150, 90, 30, 0, -30, -90, -150, -180])
+            for i in range(grid_azimuths.size):
+                # horizontal line
+                axs[col].plot([-azi_lim_pos_x, azi_lim_pos_x], [grid_azimuths[i], grid_azimuths[i]], zorder=0, lw=0.5, color='gray', ls=(0, (1, 3)))
+                # vertical line
+                axs[col].plot([grid_azimuths[i], grid_azimuths[i]], [-azi_lim_pos_x, azi_lim_pos_x], zorder=0, lw=0.5, color='gray', ls=(0, (1, 3)))
+            
+            axs[col].set_xlim(-azi_lim, azi_lim_pos_x)
+            axs[col].set_ylim(-170, azi_lim_pos_x)
             axs[col].invert_xaxis()
             axs[col].invert_yaxis()
             axs[col].plot([azi_lim, -azi_lim], [azi_lim, -azi_lim], color='grey', zorder=1)
-            axs[col].scatter(target_azimuths,
-                             median_ratings,
-                             marker='D',
-                             edgecolors='k',
-                             linewidth=1,
-                             facecolors='white',
-                             zorder=3,
-                             s=30)
 
-            if col == 0:
-                axs[col].set_ylabel('Azimuth Response (deg.)')
-                renderInsetAxis(axs[col],
-                        mvp_idcs,
-                        coord_x,
-                        coord_y,
-                        [0.02, 0.585, 0.4, 0.4],
-                        mkr_size=20)
-            
             if xaxis_bool:
                 #axs[col].set_xticks([-30, 0, 30])
                 #[150, 90, 30, 0, -30, -90, -150]
@@ -832,10 +921,10 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                 axs[col].set_xticks([150, 90, 30, 0, -30, -90, -150])
                 axs[col].set_xticklabels([])
 
-            axs[col].set_yticks([180, 150, 90, 30, 0, -30, -90, -150, -180])
+            axs[col].set_yticks([180, 150, 90, 30, 0, -30, -90, -150])
             if title_bool:
                 axs[col].set_title(titles[col])
-            axs[col].grid(True)
+            #axs[col].grid(True)
             axs[col].set_aspect('equal')
             ext.append([
                 axs[col].get_window_extent().x0,
@@ -862,12 +951,65 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                         va="center",
                         ha="center",
                         size=14)
+        layer_idx += 1
 
         #plt.show(block=True)
+        if not ALL_PLANES:
+            plt.savefig(fname=pjoin(
+                root_dir, 'Figures',
+                name + '_LateralPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
+
+    if ALL_PLANES:
+        # Plot global average confusion rates in case of combined plot
+        for col, condition in zip(range(num_cols), conditions):
+            confusion_rates_col = all_confusion_rates[col]
+
+            CR_L1 = confusion_rates_col[0]
+            CR_L2 = confusion_rates_col[1]
+            CR_L3 = confusion_rates_col[2]
+
+            CR_stacked = np.hstack((CR_L1,CR_L2,CR_L3)) 
+
+            CR_GLOBAL_MEAN = np.mean(CR_stacked)
+
+            axs[col].text(x=-30,
+                        y=150,
+                        s=r'$\overline{\mathrm{CR}} = $' + str(round(CR_GLOBAL_MEAN*100)) + '%',
+                        fontsize=10)
+            
+        # Plot global accuracy measures in case of combined plot
+        for col, condition in zip(range(num_cols), conditions):
+            idcs = np.hstack((idcs_list_azi[0], idcs_list_azi[1], idcs_list_azi[2]))
+            conditions_azi = np.asarray(
+                local_azi_ele_data[condition])[idcs, :, 0]
+            if col >= 1:
+                cond_azi_first = np.asarray(
+                    local_azi_ele_data[condition])[idcs, :, 0]
+                cond_azi_second = np.asarray(
+                    local_azi_ele_data[condition])[idcs + 25, :, 0]
+                stacked = np.array([cond_azi_first, cond_azi_second])
+                conditions_azi = np.nanmean(stacked, axis=0)
+                
+            conditions_azi[conditions_azi < -170.0] = (conditions_azi[conditions_azi < -170.0] + 360.0) % 360.0
+
+            target_azimuths = np.hstack((target_azi_list[0], target_azi_list[1], target_azi_list[2])) 
+            slope, intercept, sigma, bias = computeMetrics(
+            conditions_azi, target_azimuths, median_statistic=True)
+            axs[col].text(x=-30,
+                        y=90,
+                        s=r'$g = $' + str(round(slope, 2)),
+                        fontsize=10)
+            x = np.linspace(180, -180, 100)
+            axs[col].plot(x,
+                        slope * x + intercept,
+                        zorder=0,
+                        color='gray',
+                        ls=':')
+        
+    #plt.show(block=True)
+    if ALL_PLANES:
         plt.savefig(fname=pjoin(
-            root_dir, 'Figures',
-            name + '_LateralPlane_' + EXP.upper() + '.pdf'),
-            bbox_inches='tight')
+            root_dir, 'Figures', 'LateralPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
 
 def plotHemisphereMap(titles,
                       final_dict_names,
