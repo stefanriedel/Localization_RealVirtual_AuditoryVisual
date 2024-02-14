@@ -838,6 +838,10 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
             for i in range(mvp_idcs.size):
                 azimuth_ratings = local_azi_ele_data[condition][
                     mvp_idcs[i]][:, 0]
+                if col >= 1:
+                    azimuth_ratings = np.hstack((local_azi_ele_data[condition][
+                    mvp_idcs[i]][:, 0], local_azi_ele_data[condition][
+                    mvp_idcs[i] + 25][:, 0]))
                 
                 median_ratings[i] = np.nanmedian(azimuth_ratings)
 
@@ -853,6 +857,9 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                     zorder=zorder_layers[layer_idx],
                     c=all_colors[mvp_idcs[i]])
                 
+                if col == 2 and i == 0:
+                    print('Indiv DEBUG')
+
                 azimuth_ratings = azimuth_ratings[~np.isnan(azimuth_ratings)]
                 if target_azimuths[i] == 180:
                     azimuth_ratings = (azimuth_ratings + 360.0) % 360.0 
@@ -873,14 +880,6 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                         y=150,
                         s=r'$\overline{\mathrm{CR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
                         fontsize=10)
-                # axs[col].scatter(target_azimuths,
-                #                  median_ratings,
-                #                  marker='D',
-                #                  edgecolors='k',
-                #                  linewidth=1,
-                #                  facecolors='white',
-                #                  zorder=5,
-                #                  s=30)
                 if col == 0:
                     axs[col].set_ylabel('Azimuth Response (deg.)')
                     renderInsetAxis(axs[col],
@@ -957,7 +956,7 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
         if not ALL_PLANES:
             plt.savefig(fname=pjoin(
                 root_dir, 'Figures',
-                name + '_LateralPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
+                name + '_LateralPlane_' + EXP.upper() + '.png'), bbox_inches='tight', dpi=300)
 
     if ALL_PLANES:
         # Plot global average confusion rates in case of combined plot
