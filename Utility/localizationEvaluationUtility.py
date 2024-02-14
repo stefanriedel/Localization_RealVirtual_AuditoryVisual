@@ -839,9 +839,7 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                 azimuth_ratings = local_azi_ele_data[condition][
                     mvp_idcs[i]][:, 0]
                 if col >= 1:
-                    azimuth_ratings = np.hstack((local_azi_ele_data[condition][
-                    mvp_idcs[i]][:, 0], local_azi_ele_data[condition][
-                    mvp_idcs[i] + 25][:, 0]))
+                    azimuth_ratings = np.hstack((azimuth_ratings, local_azi_ele_data[condition][mvp_idcs[i] + 25][:, 0]))
                 
                 median_ratings[i] = np.nanmedian(azimuth_ratings)
 
@@ -857,9 +855,6 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                     zorder=zorder_layers[layer_idx],
                     c=all_colors[mvp_idcs[i]])
                 
-                if col == 2 and i == 0:
-                    print('Indiv DEBUG')
-
                 azimuth_ratings = azimuth_ratings[~np.isnan(azimuth_ratings)]
                 if target_azimuths[i] == 180:
                     azimuth_ratings = (azimuth_ratings + 360.0) % 360.0 
