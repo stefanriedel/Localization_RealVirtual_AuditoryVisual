@@ -9,6 +9,8 @@ from Utility.loudspeakerPositions import azi, ele, azi_hull, ele_hull, xyz, xyz_
 import scipy.spatial as spatial
 from Utility.localizationEvaluationUtility import *
 
+from datetime import datetime
+
 USE_PIERCINGPOINT_DIRECTION = True
 
 RENDER_LATERAL_PLANES = True
@@ -48,6 +50,7 @@ results_static_headphones = []
 
 ages = []
 genders = []
+exp_times_min = []
 
 for subj in range(num_participants):
     f_location = pjoin(data_dir, file_list[subj])
@@ -60,6 +63,12 @@ for subj in range(num_participants):
     ages.append(json_file['SubjectInformation']['Age'])
     genders.append(json_file['SubjectInformation']['Gender'])
 
+    start_time = datetime.strptime(json_file['StartTime'], "%d %b %Y %H:%M:%S")
+    end_time = datetime.strptime(json_file['EndTime'], "%d %b %Y %H:%M:%S")
+
+    exp_time_seconds = (end_time - start_time)
+    exp_times_min.append(int(exp_time_seconds.total_seconds() / 60.0))
+
     data = json_file['Results']['Parts']
 
     # Data of the three parts
@@ -69,6 +78,7 @@ for subj in range(num_participants):
 
 mean_age = np.mean(np.asarray(ages))
 stddev_age = np.std(np.asarray(ages))
+mean_time = np.mean(np.asarray(exp_times_min))
 
 coord = np.array([np.asarray(azi, dtype=float),
                   np.asarray(ele, dtype=float)]).transpose()
