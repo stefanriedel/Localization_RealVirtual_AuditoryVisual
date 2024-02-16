@@ -13,13 +13,13 @@ from datetime import datetime
 
 USE_PIERCINGPOINT_DIRECTION = True
 
-RENDER_LATERAL_PLANES = True
+RENDER_LATERAL_PLANES = False
 ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
 RENDER_VERTICAL_PLANES = False
 
 RENDER_HEMI_MAP = False
-RENDER_TIME_DATA_PLOT = False
+RENDER_TIME_DATA_PLOT = True
 
 GEOMETRIC_MEDIAN_RESPONSE = True
 SAVE_ERROR_METRICS = True
@@ -250,12 +250,8 @@ for dict_name, num_trials, targ_unit_vecs in zip(final_dict_names,
     local_azi_ele_data[dict_name] = local_azi_ele
 
 targets_azi_ele = np.copy(target_coord_deg)
-if SAVE_ERROR_METRICS:
-    computeAndSaveErrorMetrics(pjoin(
-        root_dir,
-        'ErrorMetricData',
-    ), 'Dynamic', dir_sets, dirset_names, final_dict_names, local_azi_ele_data,
-        targets_azi_ele, ABS_BIAS=False)
+
+
 
 mean_azi_ele_data = {dict_name: np.array([]) for dict_name in final_dict_names}
 for dict_name in headphone_dict_names:
@@ -272,6 +268,13 @@ for dict_name in headphone_dict_names:
     stacked_time = np.array(
         [time_data[dict_name][:, :25], time_data[dict_name][:, 25:]])
     time_data[dict_name] = np.mean(stacked_time, axis=0)
+
+if SAVE_ERROR_METRICS:
+    computeAndSaveErrorMetrics(pjoin(
+        root_dir,
+        'ErrorMetricData',
+    ), 'Dynamic', dir_sets, dirset_names, final_dict_names, local_azi_ele_data,
+        targets_azi_ele, confusion_data, ABS_BIAS=False)
 
 if RENDER_TIME_DATA_PLOT:
     EXP = 'Dynamic'

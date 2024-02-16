@@ -10,6 +10,8 @@ def posthoc_wilcoxon(data, pairs_to_be_tested, alternative_h='two-sided', p_adju
     """
     pvals = np.zeros(len(pairs_to_be_tested))
     effect_sizes = np.zeros(len(pairs_to_be_tested))
+    test_statistics = np.zeros(len(pairs_to_be_tested))
+    z_statistics = np.zeros(len(pairs_to_be_tested)) 
 
     idx = 0
     for pair in pairs_to_be_tested:
@@ -25,7 +27,9 @@ def posthoc_wilcoxon(data, pairs_to_be_tested, alternative_h='two-sided', p_adju
             total_rank_sum += i
         pvals[idx] = res.pvalue
         z = res.zstatistic
+        z_statistics[idx] = z
         effect_sizes[idx] = z / np.sqrt(non_nan_idcs.size)
+        test_statistics[idx] = res.statistic
         idx += 1
 
     if p_adjust == 'BH':
@@ -48,7 +52,7 @@ def posthoc_wilcoxon(data, pairs_to_be_tested, alternative_h='two-sided', p_adju
             # Update correction factor
             corr_factor -= 1
 
-    return pvals, effect_sizes
+    return pvals, effect_sizes, test_statistics, z_statistics
 
 
 def posthoc_ttest(data, pairs_to_be_tested, p_adjust='BH'):

@@ -107,10 +107,12 @@ L2_idcs = np.arange(8, 16)
 L3_idcs = np.arange(16, 20)
 dir_sets = [
     L1_idcs,
-    np.array([0, 24, 23]),
+    np.array([0]),
     np.concatenate((L2_idcs, L3_idcs)),
+    np.array([4]),
+    np.arange(25)
 ]
-dirset_names = ['Horizontal', 'Frontal', 'Elevated']
+dirset_names = ['Horizontal', 'Frontal', 'Elevated', 'Rear', 'Overall']
 
 # 0 DEG # -30 DEG # 30 DEG # -90 DEG# 90 DEG # 180 DEG # -150 DEG # 150 DEG
 
@@ -177,7 +179,7 @@ def convertAziEleToPlane(azi, ele):
 
 def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
                                final_dict_names, local_azi_ele_data,
-                               targets_azi_ele, ABS_BIAS):
+                               targets_azi_ele, confusion_data, ABS_BIAS):
     NUM_CHANNELS = 25
 
     # dir_sets = [L1_idcs, np.array([0, 24, 23]), np.concatenate((L2_idcs, L3_idcs))]
@@ -206,6 +208,11 @@ def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
             dict_name: np.array([])
             for dict_name in final_dict_names
         }
+        quadrant_error = {
+            dict_name: np.array([])
+            for dict_name in final_dict_names
+        }
+        
 
         for dict_name in final_dict_names:
             num_trials = len(local_azi_ele_data[dict_name])
@@ -296,14 +303,15 @@ def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
             local_ele_error_rms[dict_name] = ele_error_rms
             local_azi_bias[dict_name] = azi_bias
             local_ele_bias[dict_name] = ele_bias
+            quadrant_error[dict_name] = np.mean(confusion_data[dict_name][dirs])
 
         # Save to disk with dirset name and dictionary name
         metric_data_list = [
             local_azi_error_rms, local_azi_bias, local_ele_error_rms,
-            local_ele_bias
+            local_ele_bias, quadrant_error
         ]
         metric_name_list = [
-            'AzimuthError', 'AzimuthBias', 'ElevationError', 'ElevationBias'
+            'AzimuthError', 'AzimuthBias', 'ElevationError', 'ElevationBias', 'QuadrantError'
         ]
         for metric_data, metric_name in zip(metric_data_list,
                                             metric_name_list):
@@ -355,7 +363,7 @@ def loadAndPrintErrorMetric(load_dir, dirset_names):
                     if dict_name != ref_name:
                         data = np.array([metric_data, metric_data_ref])
                         pairs = [[0, 1]]
-                        pval, effect_size = posthoc_wilcoxon(
+                        pval, effect_size, T, z = posthoc_wilcoxon(
                             data,
                             pairs,
                             alternative_h='two-sided',
@@ -566,7 +574,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
             #              s=r'$b = $' + str(round(bias, 1)) + '°')
 
             data = conditions_ele
-            pvals, effect_sizes = posthoc_wilcoxon(data,
+            pvals, effect_sizes, T, z = posthoc_wilcoxon(data,
                                                    pairs_to_be_tested,
                                                    alternative_h='two-sided',
                                                    p_adjust=None)
@@ -1269,7 +1277,7 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
             for condition, idx in zip(conditions, range(len(conditions))):
                 data[idx, :] = np.median(time_data[condition][:, dirs], axis=1)
         pairs_to_be_tested = [[1, 2], [1, 3]]
-        pvals, effect_sizes = posthoc_wilcoxon(data,
+        pvals, effect_sizes, T, z = posthoc_wilcoxon(data,
                                                pairs_to_be_tested,
                                                alternative_h='two-sided',
                                                p_adjust='BH')
