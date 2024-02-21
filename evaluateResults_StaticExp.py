@@ -13,10 +13,10 @@ from datetime import datetime
 
 USE_PIERCINGPOINT_DIRECTION = True
 
-RENDER_LATERAL_PLANES = True
+RENDER_LATERAL_PLANES = False
 ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
-RENDER_VERTICAL_PLANES = False
+RENDER_VERTICAL_PLANES = True
 
 RENDER_HEMI_MAP = False
 RENDER_TIME_DATA_PLOT = False

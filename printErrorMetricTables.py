@@ -10,12 +10,6 @@ if PRINT_ANGULAR_ERRORS:
     loadAndPrintErrorMetric(pjoin(root_dir, 'ErrorMetricData'), dirset_names)
 
 # Quadrant-Error Table
-
-EXP = 'Static'
-
-
-
-
 EXPS = ['Static', 'Dynamic']
 
 for dirset_name in ['Frontal', 'Rear', 'Overall']:
@@ -38,7 +32,7 @@ for dirset_name in ['Frontal', 'Rear', 'Overall']:
             ]
         
         for dict_name in dict_names:
-            print(str(round(metric_data_all[dict_name] * 100.0, 0)) + ' & ', end="")
+            print(str(round(metric_data_all[dict_name] * 100.0, 2)) + ' & ', end="")
             if dict_name == 'DynamicKU100HRTF':
                 print(' \\\\')
 

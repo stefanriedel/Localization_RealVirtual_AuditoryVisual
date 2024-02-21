@@ -5,7 +5,7 @@ from matplotlib.patches import Rectangle
 from os.path import dirname, join as pjoin
 from matplotlib import cm
 import matplotlib.colors as colors
-from Utility.pairwiseTests import posthoc_wilcoxon
+from Utility.pairwiseTests import posthoc_wilcoxon, posthoc_ttest
 from scipy.spatial.distance import cdist, euclidean
 import warnings
 import scipy.stats as stats
@@ -366,6 +366,7 @@ def loadAndPrintErrorMetric(load_dir, dirset_names):
                         pval, effect_size, T, z = posthoc_wilcoxon(
                             data,
                             pairs,
+                            method='approx',
                             alternative_h='two-sided',
                             p_adjust=None)
                         significant = pval < 0.05
@@ -580,11 +581,6 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                                                    p_adjust=None)
             significant = pvals < 0.05
 
-            if 0:
-                print(condition + ' pvals: ' + str(pvals))
-                print(condition + ' effect: ' + str(effect_sizes))
-                print('')
-
             confusion_rates = np.zeros(mvp_idcs.size)
             all_elevation_ratings = []
             for i in range(mvp_idcs.size):
@@ -672,12 +668,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                                   s=pval_str,
                                   fontsize=9)
 
-                    if np.abs(effect_sizes[i]) >= 0.75:
-                        axs[col].text((brace_start + brace_end) / 2 - 2,
-                                      -22.5 + yoff,
-                                      s=r'$\Delta$',
-                                      fontsize=8)
-                    # elif np.abs(effect_sizes[i]) >= 0.5:
+                    # if np.abs(effect_sizes[i]) >= 0.75:
                     #     axs[col].text((brace_start + brace_end) / 2 - 2,
                     #                   -22.5 + yoff,
                     #                   s=r'$\Delta$',
@@ -785,7 +776,6 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
     else:
         x_offs = np.array([0,0,0])
 
-
     all_confusion_rates = [[],[],[],[]]
     for mvp_idcs, pairs_to_be_tested, target_azimuths, name, deg, title_bool, xaxis_bool, target_distances in zip(
             idcs_list, pairtest_list, target_azi_list, name_list_azi, deg_list,
@@ -855,7 +845,7 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                 azimuth_scatter[azimuth_ratings < -170.0] = (azimuth_scatter[azimuth_ratings < -170.0] + 360.0) % 360.0
                 axs[col].scatter(
                     target_azimuths[i] +
-                    (np.random.rand(azimuth_ratings.size) - 0.5) * (2.5 * 1) + x_offs[layer_idx],
+                    (np.random.rand(azimuth_ratings.size) - 0.5) * 2.5 + x_offs[layer_idx],
                     azimuth_scatter,
                     alpha=1.0,
                     edgecolors='k',
@@ -1280,7 +1270,8 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
         pvals, effect_sizes, T, z = posthoc_wilcoxon(data,
                                                pairs_to_be_tested,
                                                alternative_h='two-sided',
-                                               p_adjust='BH')
+                                               p_adjust='Bonferroni',
+                                               CL_ES='lesser')
         for dict_name, idx, x_off in zip(conditions, range(len(conditions)),
                                          x_offsets):
             if EXP == 'Static' and dict_name == 'StaticOpenEars':
@@ -1308,6 +1299,7 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
                           markerfacecolor='white',
                           markeredgecolor='k',
                           zorder=3)
+            #axs[col].scatter(x_off + (np.random.rand(dir_mean_resp_times.size) - 0.5) * 0.2, dir_mean_resp_times, s=5, c='white', edgecolors='gray', zorder=1)
         axs[col].text(1.15, -0.7 + 3.0, s='Real')
         axs[col].text(3, -0.7 + 3.0, s='Virtual')
 
@@ -1345,14 +1337,16 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
                               s=pval_str,
                               fontsize=10)
                 # eff_str = ''
-                if np.abs(effect_sizes[i]) >= 0.75:
-                    eff_str = r'$\Delta$'
-                    xoffs = -0.075
-                    yoffs = 0.1
-                    axs[col].text((brace_start + brace_end) / 2 + xoffs,
-                                  y_ref + yoffs,
-                                  s=eff_str,
-                                  fontsize=10)
+
+
+                # if np.abs(effect_sizes[i]) >= 0.75:
+                #     eff_str = r'$\Delta$'
+                #     xoffs = -0.075
+                #     yoffs = 0.1
+                #     axs[col].text((brace_start + brace_end) / 2 + xoffs,
+                #                   y_ref + yoffs,
+                #                   s=eff_str,
+                #                   fontsize=10)
 
         axs[col].set_xlim(0, 5)
         if col == 0:
@@ -1381,6 +1375,6 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
                         mkr_size=15)
     # plt.show(block=True)
     plt.savefig(fname=pjoin(root_dir, 'Figures',
-                            EXP + '_ResponseTimes_Quantitative.pdf'),
+                            EXP + '_ResponseTimes_Quantitative.eps'),
                 bbox_inches='tight')
     print('')
