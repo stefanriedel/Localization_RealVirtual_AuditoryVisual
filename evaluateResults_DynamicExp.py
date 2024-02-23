@@ -20,6 +20,7 @@ RENDER_VERTICAL_PLANES = True
 
 RENDER_HEMI_MAP = False
 RENDER_TIME_DATA_PLOT = False
+RENDER_RESPONSETIME_PROGRESSION = True
 
 GEOMETRIC_MEDIAN_RESPONSE = True
 SAVE_ERROR_METRICS = True
@@ -173,41 +174,32 @@ azi_ele_data['DynamicKU100HRTF'] = azi_ele_data_parts['DynamicHeadphones'][:, (
 azi_ele_data['DynamicKEMARHRTF'] = azi_ele_data_parts['DynamicHeadphones'][:, (
     idcs + 50).tolist() + (idcs + 75 + 50).tolist(), :]
 
+if RENDER_RESPONSETIME_PROGRESSION:
+    # Evaluate ResponsetTime over trials
+    times_raw = time_data_parts['DynamicHeadphones']
+    times_raw_sorted = np.zeros((16,150))
+    for subj in range(16):
+        times_raw_sorted[subj,:] = times_raw[subj, presented_order_trials_hp[subj]]
 
-# Evaluate ResponsetTime over trials
+    def MAD(data, axis=0):
+        return np.nanmedian(np.abs(data - np.nanmedian(data, axis=axis)), axis=axis)
+    
+    scale = 3
+    plt.figure(figsize=(3*scale,1*scale))
+    plt.fill_between(np.arange(150), np.median(times_raw_sorted, axis=0) - MAD(times_raw_sorted, axis=0), np.median(times_raw_sorted, axis=0)+ MAD(times_raw_sorted, axis=0), color='lightgrey')
+    plt.errorbar(x=np.arange(150), y=np.median(times_raw_sorted, axis=0), yerr=0, label='median +- MAD')
+    plt.title('Response times over 150 dynamic trials (Op.Headph., KEMAR, KU100)')
+    plt.ylabel('Response Time (sec.)')
+    plt.xlabel('Trial Index')
+    plt.xlim(0,150)
+    plt.xticks(np.arange(0,165,15))
+    plt.legend()
+    plt.ylim(0, 20)
+    plt.grid()
+    plt.tight_layout()
 
-times_raw = time_data_parts['DynamicHeadphones']
-
-times_raw_sorted = np.zeros((16,150))
-for subj in range(16):
-    times_raw_sorted[subj,:] = times_raw[subj, presented_order_trials_hp[subj]]
-
-def MAD(data, axis=0):
-    return np.nanmedian(np.abs(data - np.nanmedian(data, axis=axis)), axis=axis)
-
-
-scale = 3
-plt.figure(figsize=(2*scale,1*scale))
-#plt.errorbar(x=np.arange(150), y=np.mean(times_raw_sorted, axis=0), yerr=np.std(times_raw_sorted, axis=0), label='mean +- STD')
-
-plt.fill_between(np.arange(150), np.median(times_raw_sorted, axis=0) - MAD(times_raw_sorted, axis=0), np.median(times_raw_sorted, axis=0)+ MAD(times_raw_sorted, axis=0), color='lightgrey')
-plt.errorbar(x=np.arange(150), y=np.median(times_raw_sorted, axis=0), yerr=0, label='median +- MAD')
-
-
-#plt.title('Response Times over 150 Trials interleaving OpenHeadphones (Real), KEMAR (Virtual), and KU100 (Virtual)')
-plt.title('Response times over 150 dynamic trials (Op.Headph., KEMAR, KU100)')
-plt.ylabel('Response Time (sec.)')
-plt.xlabel('Trial Index')
-plt.xlim(0,150)
-plt.xticks(np.arange(0,165,15))
-plt.legend()
-plt.ylim(0, 20)
-plt.grid()
-plt.tight_layout()
-
-plt.savefig('Figures/ResponseTimes_Over_Time.eps')
-plt.show()
-
+    plt.savefig('Figures\ResponseTimes_Progression.png')
+    plt.show()
 
 time_data = {dict_name: np.array([]) for dict_name in final_dict_names}
 time_data['DynamicOpenEars'] = time_data_parts['DynamicOpenEars']
