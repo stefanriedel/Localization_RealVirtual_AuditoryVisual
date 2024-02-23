@@ -14,6 +14,12 @@ import scipy.stats as stats
 name_list = [
     '0DEG', '-30DEG', '30DEG', '-90DEG', '90DEG', '180DEG', '-150DEG', '150DEG'
 ]
+name_list_jasa_static = [
+    'Fig6a', 'Fig4b', 'Fig4a', 'Fig5b', 'Fig5a', 'Fig6b', '-150DEG', '150DEG'
+]
+name_list_jasa_dynamic = [
+    'Fig6c', 'Fig4d', 'Fig4c', 'Fig5d', 'Fig5c', 'Fig6d', '-150DEG', '150DEG'
+]
 name_list_azi = [
     '0DEG', '30DEG', '60DEG'
 ]
@@ -512,7 +518,7 @@ def renderInsetAxis(ax,
 def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                        deg_list, title_bool_list, titles, xaxis_bool_list,
                        final_dict_names, local_azi_ele_data, coord_x, coord_y,
-                       all_colors, EXP, root_dir, plot_avg_ele):
+                       all_colors, EXP, root_dir, plot_avg_ele, render_with_jasa_names):
     for mvp_idcs, pairs_to_be_tested, target_elevations, name, deg, title_bool, xaxis_bool, target_distances in zip(
             idcs_list, pairtest_list, target_ele_list, name_list, deg_list,
             title_bool_list, xaxis_bool_list, target_distance_hits):
@@ -544,6 +550,9 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
             # Significance tests
             conditions_ele = np.asarray(
                 local_azi_ele_data[condition])[mvp_idcs, :, 1]
+            conditions_ele_wilcox = conditions_ele
+
+            # Case of repeated responses
             if col >= 1:
                 cond_ele_first = np.asarray(
                     local_azi_ele_data[condition])[mvp_idcs, :, 1]
@@ -552,33 +561,37 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 stacked = np.array([cond_ele_first, cond_ele_second])
                 conditions_ele = np.nanmean(stacked, axis=0)
 
+                USE_FIRST_RESPONSE_WILCOX = False
+                if USE_FIRST_RESPONSE_WILCOX:
+                    conditions_ele_wilcox = cond_ele_first
+                else:
+                    conditions_ele_wilcox = conditions_ele
+
             slope, intercept, sigma, bias = computeMetrics(
                 conditions_ele, target_elevations, median_statistic=True)
             axs[col].text(x=48,
                           y=3,
                           s=r'$g = $' + str(round(slope, 2)),
                           fontsize=10)
-            """
-            axs[col].text(x=55,
-                          y=-14.5,
-                          s=r'$\sigma = $' + str(round(sigma, 1)) + '°',
-                          fontsize=10)
-            """
             x = np.linspace(-32.5, 90, 100)
             axs[col].plot(x,
                           slope * x + intercept,
                           zorder=0,
                           color='gray',
                           ls=':')
-            # axs[col].text(x=55,
-            #              y=-19.5,
-            #              s=r'$b = $' + str(round(bias, 1)) + '°')
 
-            data = conditions_ele
+            data = conditions_ele_wilcox
             pvals, effect_sizes, T, z = posthoc_wilcoxon(data,
                                                    pairs_to_be_tested,
                                                    alternative_h='two-sided',
                                                    p_adjust=None)
+            
+            # pvals, t = posthoc_ttest(data,
+            #                         pairs_to_be_tested,
+            #                         alternative_h='two-sided',
+            #                         p_adjust=None)
+            
+
             significant = pvals < 0.05
 
             confusion_rates = np.zeros(mvp_idcs.size)
@@ -638,50 +651,53 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                     s=r'$\overline{\mathrm{CR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
                     fontsize=10)
 
-            for i in range(len(pairs_to_be_tested)):
-                if True:  # significant[i] == True:
-                    if pvals[i] >= 0.05:
-                        pval_str = 'ns'
-                        offs = -2
-                        voff = 2
-                    if pvals[i] < 0.05:
-                        pval_str = '*'
-                        offs = 0
-                        voff = 0
-                    if pvals[i] < 0.01:
-                        pval_str = '**'
-                        offs = -1.75
-                        voff = 0
-                    if pvals[i] < 0.001:
-                        pval_str = '***'
-                        offs = -2.75
-                        voff = 0
-                    brace_start = target_elevations[pairs_to_be_tested[i][0]]
-                    brace_end = target_elevations[pairs_to_be_tested[i][1]]
-                    if pairs_to_be_tested[i][1] - pairs_to_be_tested[i][0] > 1:
-                        yoff = 10
-                    else:
-                        yoff = 0
+            PLOT_PVALUES = False
 
-                    axs[col].text((brace_start + brace_end) / 2 - 2 + offs,
-                                  -31.5 + voff + yoff,
-                                  s=pval_str,
-                                  fontsize=9)
+            if PLOT_PVALUES:
+                for i in range(len(pairs_to_be_tested)):
+                    if True:  # significant[i] == True:
+                        if pvals[i] >= 0.05:
+                            pval_str = 'ns'
+                            offs = -2
+                            voff = 0
+                        if pvals[i] < 0.05:
+                            pval_str = '*'
+                            offs = 0
+                            voff = 0
+                        if pvals[i] < 0.01:
+                            pval_str = '**'
+                            offs = -1.75
+                            voff = 0
+                        if pvals[i] < 0.001:
+                            pval_str = '***'
+                            offs = -3.5
+                            voff = 0
+                        brace_start = target_elevations[pairs_to_be_tested[i][0]]
+                        brace_end = target_elevations[pairs_to_be_tested[i][1]]
+                        if pairs_to_be_tested[i][1] - pairs_to_be_tested[i][0] > 1:
+                            yoff = 10
+                        else:
+                            yoff = 0
 
-                    # if np.abs(effect_sizes[i]) >= 0.75:
-                    #     axs[col].text((brace_start + brace_end) / 2 - 2,
-                    #                   -22.5 + yoff,
-                    #                   s=r'$\Delta$',
-                    #                   fontsize=8)
-                    axs[col].plot([brace_start + 2.5, brace_end - 2.5],
-                                  [-25 + yoff, -25 + yoff],
-                                  color='k')
-                    axs[col].plot([brace_start + 2.5, brace_start + 2.5],
-                                  [-25 + yoff, -22.5 + yoff],
-                                  color='k')
-                    axs[col].plot([brace_end - 2.5, brace_end - 2.5],
-                                  [-25 + yoff, -22.5 + yoff],
-                                  color='k')
+                        axs[col].text((brace_start + brace_end) / 2 - 2 + offs,
+                                    -31.5 + voff + yoff,
+                                    s=pval_str,
+                                    fontsize=9)
+
+                        # if np.abs(effect_sizes[i]) >= 0.75:
+                        #     axs[col].text((brace_start + brace_end) / 2 - 2,
+                        #                   -22.5 + yoff,
+                        #                   s=r'$\Delta$',
+                        #                   fontsize=8)
+                        axs[col].plot([brace_start + 2.5, brace_end - 2.5],
+                                    [-25 + yoff, -25 + yoff],
+                                    color='k')
+                        axs[col].plot([brace_start + 2.5, brace_start + 2.5],
+                                    [-25 + yoff, -22.5 + yoff],
+                                    color='k')
+                        axs[col].plot([brace_end - 2.5, brace_end - 2.5],
+                                    [-25 + yoff, -22.5 + yoff],
+                                    color='k')
 
             axs[col].plot([-32.5, 90], [-32.5, 90], color='grey', zorder=1)
             axs[col].scatter(target_elevations,
@@ -743,9 +759,14 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                         size=14)
 
         #plt.show(block=True)
-        plt.savefig(fname=pjoin(
-            root_dir, 'Figures',
-            name + '_VerticalPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
+        if render_with_jasa_names:
+            plt.savefig(fname=pjoin(
+                root_dir, 'Figures',
+                name + '.eps'), bbox_inches='tight', dpi=300)
+        else:
+            plt.savefig(fname=pjoin(
+                root_dir, 'Figures',
+                name + '_VerticalPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
 
 
 def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
@@ -1336,8 +1357,6 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
                               y_ref + yoffs,
                               s=pval_str,
                               fontsize=10)
-                # eff_str = ''
-
 
                 # if np.abs(effect_sizes[i]) >= 0.75:
                 #     eff_str = r'$\Delta$'

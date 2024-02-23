@@ -26,6 +26,8 @@ SAVE_ERROR_METRICS = True
 
 NUM_CHANNELS = 25
 
+RENDER_WITH_JASA_NAMES = True
+
 # Tolerance around target direction to consider as hit
 # Otherwise it is a 'quadrant error'
 #ANGLE_TOL = 90.0 / 180.0 * np.pi
@@ -307,10 +309,12 @@ if RENDER_VERTICAL_PLANES:
     titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
     EXP = 'Static'
     plot_avg_ele = False
-    plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
+    if RENDER_WITH_JASA_NAMES:
+        name_list_vertical = name_list_jasa_static 
+    plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list_vertical,
                        deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
-                       root_dir, plot_avg_ele)
+                       root_dir, plot_avg_ele, RENDER_WITH_JASA_NAMES)
 
 # Reassure normalized mean response vectors and convert to azi ele for hemi maps
 mean_azi_ele_data = {dict_name: np.array([]) for dict_name in final_dict_names}

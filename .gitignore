@@ -31,7 +31,7 @@ MANIFEST
 # Figures
 *.eps
 *.pdf
-*.png
+.png
 
 
 # PyInstaller

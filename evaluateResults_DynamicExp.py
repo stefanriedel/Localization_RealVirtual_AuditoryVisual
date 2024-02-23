@@ -16,15 +16,17 @@ USE_PIERCINGPOINT_DIRECTION = True
 RENDER_LATERAL_PLANES = False
 ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
-RENDER_VERTICAL_PLANES = False
+RENDER_VERTICAL_PLANES = True
 
 RENDER_HEMI_MAP = False
-RENDER_TIME_DATA_PLOT = True
+RENDER_TIME_DATA_PLOT = False
 
 GEOMETRIC_MEDIAN_RESPONSE = True
 SAVE_ERROR_METRICS = True
 
 NUM_CHANNELS = 25
+
+RENDER_WITH_JASA_NAMES = True
 
 # Tolerance around target direction to consider as hit
 # Otherwise it is a 'quadrant error'
@@ -50,6 +52,8 @@ ages = []
 genders = []
 exp_times_min = []
 
+presented_order_trials_hp = []
+
 for subj in range(num_participants):
     f_location = pjoin(data_dir, file_list[subj])
 
@@ -72,6 +76,8 @@ for subj in range(num_participants):
     # Data of the three parts
     results_dynamic_open_ears.append(data[0]['Trials'])
     results_dynamic_headphones.append(data[1]['Trials'])
+
+    presented_order_trials_hp.append(data[1]['PresentedOrderOfTrials'])
 
 mean_age = np.mean(np.asarray(ages))
 stddev_age = np.std(np.asarray(ages))
@@ -166,6 +172,42 @@ azi_ele_data['DynamicKU100HRTF'] = azi_ele_data_parts['DynamicHeadphones'][:, (
     idcs + 25).tolist() + (idcs + 75 + 25).tolist(), :]
 azi_ele_data['DynamicKEMARHRTF'] = azi_ele_data_parts['DynamicHeadphones'][:, (
     idcs + 50).tolist() + (idcs + 75 + 50).tolist(), :]
+
+
+# Evaluate ResponsetTime over trials
+
+times_raw = time_data_parts['DynamicHeadphones']
+
+times_raw_sorted = np.zeros((16,150))
+for subj in range(16):
+    times_raw_sorted[subj,:] = times_raw[subj, presented_order_trials_hp[subj]]
+
+def MAD(data, axis=0):
+    return np.nanmedian(np.abs(data - np.nanmedian(data, axis=axis)), axis=axis)
+
+
+scale = 3
+plt.figure(figsize=(2*scale,1*scale))
+#plt.errorbar(x=np.arange(150), y=np.mean(times_raw_sorted, axis=0), yerr=np.std(times_raw_sorted, axis=0), label='mean +- STD')
+
+plt.fill_between(np.arange(150), np.median(times_raw_sorted, axis=0) - MAD(times_raw_sorted, axis=0), np.median(times_raw_sorted, axis=0)+ MAD(times_raw_sorted, axis=0), color='lightgrey')
+plt.errorbar(x=np.arange(150), y=np.median(times_raw_sorted, axis=0), yerr=0, label='median +- MAD')
+
+
+#plt.title('Response Times over 150 Trials interleaving OpenHeadphones (Real), KEMAR (Virtual), and KU100 (Virtual)')
+plt.title('Response times over 150 dynamic trials (Op.Headph., KEMAR, KU100)')
+plt.ylabel('Response Time (sec.)')
+plt.xlabel('Trial Index')
+plt.xlim(0,150)
+plt.xticks(np.arange(0,165,15))
+plt.legend()
+plt.ylim(0, 20)
+plt.grid()
+plt.tight_layout()
+
+plt.savefig('Figures/ResponseTimes_Over_Time.eps')
+plt.show()
+
 
 time_data = {dict_name: np.array([]) for dict_name in final_dict_names}
 time_data['DynamicOpenEars'] = time_data_parts['DynamicOpenEars']
@@ -300,10 +342,12 @@ if RENDER_VERTICAL_PLANES:
     titles = ['Reference', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
     EXP = 'Dynamic'
     plot_avg_ele = False
-    plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
+    if RENDER_WITH_JASA_NAMES:
+        name_list_vertical = name_list_jasa_dynamic
+    plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list_vertical,
                        deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
-                       root_dir, plot_avg_ele)
+                       root_dir, plot_avg_ele, RENDER_WITH_JASA_NAMES)
 
 # Reassure normalized mean response vectors and convert to azi ele for hemi maps
 for dict_name in final_dict_names:
