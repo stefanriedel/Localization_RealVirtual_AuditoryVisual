@@ -20,6 +20,7 @@ RENDER_VERTICAL_PLANES = True
 
 RENDER_HEMI_MAP = False
 RENDER_TIME_DATA_PLOT = False
+RENDER_RESPONSETIME_PROGRESSION = True
 
 GEOMETRIC_MEDIAN_RESPONSE = True
 SAVE_ERROR_METRICS = True
@@ -54,6 +55,8 @@ ages = []
 genders = []
 exp_times_min = []
 
+presented_order_trials_hp = []
+
 for subj in range(num_participants):
     f_location = pjoin(data_dir, file_list[subj])
 
@@ -77,6 +80,8 @@ for subj in range(num_participants):
     results_dynamic_open_ears.append(data[0]['Trials'])
     results_static_open_ears.append(data[1]['Trials'])
     results_static_headphones.append(data[2]['Trials'])
+
+    presented_order_trials_hp.append(data[2]['PresentedOrderOfTrials'])
 
 mean_age = np.mean(np.asarray(ages))
 stddev_age = np.std(np.asarray(ages))
@@ -174,6 +179,33 @@ azi_ele_data['StaticIndivHRTF'] = azi_ele_data_parts['StaticHeadphones'][:, (
     idcs + 25).tolist() + (idcs + 75 + 25).tolist(), :]
 azi_ele_data['StaticKU100HRTF'] = azi_ele_data_parts['StaticHeadphones'][:, (
     idcs + 50).tolist() + (idcs + 75 + 50).tolist(), :]
+
+if RENDER_RESPONSETIME_PROGRESSION:
+    # Evaluate ResponsetTime over trials
+    times_raw = time_data_parts['StaticHeadphones']
+    times_raw_sorted = np.zeros((16,150))
+    for subj in range(16):
+        times_raw_sorted[subj,:] = times_raw[subj, presented_order_trials_hp[subj]]
+
+    def MAD(data, axis=0):
+        return np.nanmedian(np.abs(data - np.nanmedian(data, axis=axis)), axis=axis)
+    
+    scale = 3
+    plt.figure(figsize=(3*scale,1*scale))
+    plt.fill_between(np.arange(150), np.median(times_raw_sorted, axis=0) - MAD(times_raw_sorted, axis=0), np.median(times_raw_sorted, axis=0)+ MAD(times_raw_sorted, axis=0), color='lightgrey')
+    plt.errorbar(x=np.arange(150), y=np.median(times_raw_sorted, axis=0), yerr=0, label='median +- MAD')
+    plt.title('Response times over 150 static trials (Op.Headph., Indiv, KU100)')
+    plt.ylabel('Response Time (sec.)')
+    plt.xlabel('Trial Index')
+    plt.xlim(0,150)
+    plt.xticks(np.arange(0,165,15))
+    plt.legend()
+    plt.ylim(0, 20)
+    plt.grid()
+    plt.tight_layout()
+
+    plt.savefig('Figures\ResponseTimes_Progression_Static.png')
+    plt.show()
 
 time_data = {dict_name: np.array([]) for dict_name in final_dict_names}
 time_data['DynamicOpenEars'] = time_data_parts['DynamicOpenEars']

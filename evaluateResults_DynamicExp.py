@@ -198,7 +198,7 @@ if RENDER_RESPONSETIME_PROGRESSION:
     plt.grid()
     plt.tight_layout()
 
-    plt.savefig('Figures\ResponseTimes_Progression.png')
+    plt.savefig('Figures\ResponseTimes_Progression_Dynamic.png')
     plt.show()
 
 time_data = {dict_name: np.array([]) for dict_name in final_dict_names}
