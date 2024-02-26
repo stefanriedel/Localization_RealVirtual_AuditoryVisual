@@ -10,6 +10,10 @@ from scipy.spatial.distance import cdist, euclidean
 import warnings
 import scipy.stats as stats
 
+
+from Utility.loudspeakerPositions import azi, ele
+
+
 # Render vertical plane plots
 name_list = [
     '0DEG', '-30DEG', '30DEG', '-90DEG', '90DEG', '180DEG', '-150DEG', '150DEG'
@@ -183,9 +187,110 @@ def convertAziEleToPlane(azi, ele):
     return coord_x, coord_y
 
 
+def computeCorrelationConfusionRateResponseTimes(local_azi_ele_data, time_data, final_dict_names):
+    # all directions
+    dirs = np.arange(25)
+
+    #subset 
+    m30 = np.array([8, 23, 16]) - 1  # -30 DEG
+    p30 = np.array([2, 10]) - 1  # 30 DEG
+    m90 = np.array([7, 22, 15]) - 1  # -90 DEG
+    p90 = np.array([3, 11]) - 1  # 90 DEG
+    #p0 = np.array([25, 1, 24, 9, 17]) - 1 # 0 DEG
+    p0 = np.array([1, 24, 9]) - 1 # 0 DEG
+    dirs = np.hstack((m30, p30, m90, p90, p0), dtype=int)
+    target_elevations = ele
+
+    target_distances = np.zeros((NUM_CHANNELS, 2))
+    for vertical_idcs, target_distances_ele in zip(idcs_list, target_distance_hits):
+        for tr, idx in zip(vertical_idcs, range(len(vertical_idcs))):
+            target_distances[tr, 0] = target_distances_ele[idx, 0]
+            target_distances[tr, 1] = target_distances_ele[idx, 1]
+
+    # Zenith loudspeaker
+    target_distances[20, 0] = -15.0
+    target_distances[20, 1] = 0.0
+
+    confusion_rate = {
+            dict_name: np.array([])
+            for dict_name in final_dict_names
+        }
+    
+    median_response_times = {
+            dict_name: np.array([])
+            for dict_name in final_dict_names
+        }
+
+    for dict_name in final_dict_names:
+        num_trials = len(local_azi_ele_data[dict_name])
+
+        local_confusion_rates = np.zeros(NUM_CHANNELS)
+        for tr in range(NUM_CHANNELS):
+            if num_trials == NUM_CHANNELS:
+                responses_azi_ele = local_azi_ele_data[dict_name][tr]
+            else:
+                first_resp = local_azi_ele_data[dict_name][tr]
+                doubled_resp = local_azi_ele_data[dict_name][tr +
+                                                                NUM_CHANNELS]
+                responses_azi_ele = np.concatenate(
+                    (first_resp, doubled_resp))
+
+            elevation_ratings = responses_azi_ele[:, 1]
+            elevation_ratings = elevation_ratings[~np.isnan(elevation_ratings)]
+            elevation_distances = elevation_ratings - target_elevations[tr]
+            confusions = np.logical_or(elevation_distances < target_distances[tr,0],  elevation_distances > target_distances[tr,1])
+            CR = float(confusions.sum()) / float(confusions.size)
+            local_confusion_rates[tr] = CR
+
+
+        median_response_times[dict_name] = np.median(time_data[dict_name], axis=0)
+        confusion_rate[dict_name] = local_confusion_rates
+
+
+    idcs_eval = dirs
+    rt = np.array([])
+    cr = np.array([])
+
+    for dict_name in final_dict_names:
+        rt = np.hstack((rt, median_response_times[dict_name][idcs_eval]))
+        cr = np.hstack((cr, confusion_rate[dict_name][idcs_eval]))
+    res = stats.pearsonr(cr * 100.0, rt)
+
+    res_linreg = stats.linregress(cr * 100.0, rt)
+    slope = res_linreg.slope
+    intercept = res_linreg.intercept
+    x= np.linspace(0,100,100)
+    y = x * slope + intercept
+    
+    fs = 10
+    scale = 2
+    plt.figure(figsize=(2*scale,2*scale))
+    plt.plot(x, y, color='grey', zorder=0)
+    plt.scatter(cr * 100.0, rt, zorder=1)
+    if res_linreg.pvalue < 0.001:
+        plt.text(70, 5, s = 'p < 0.001', fontsize=fs)
+    else:
+        plt.text(70, 5, s = 'p = ' + str(round(res_linreg.pvalue, 3)), fontsize=fs)
+
+    plt.text(70, 4, s = 'r = ' + str(round(res_linreg.rvalue, 2)), fontsize=fs)
+    plt.xlim(0,100)
+    plt.ylim(2,14)
+    plt.grid()
+    plt.ylabel('Median Response Time (sec.)')
+    plt.xlabel('Local Confusion Rate (%)')
+    #plt.show(block=True)
+    plt.savefig('Figures/Correlation_CR_RT.png')
+
+
+    print(res)
+    # Stack data before correlation analysis
+    print('done')
+    return
+
+
 def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
                                final_dict_names, local_azi_ele_data,
-                               targets_azi_ele, confusion_data, ABS_BIAS):
+                               targets_azi_ele, QE_data, ABS_BIAS):
     NUM_CHANNELS = 25
 
     # dir_sets = [L1_idcs, np.array([0, 24, 23]), np.concatenate((L2_idcs, L3_idcs))]
@@ -309,7 +414,7 @@ def computeAndSaveErrorMetrics(save_dir, EXP, dir_sets, dirset_names,
             local_ele_error_rms[dict_name] = ele_error_rms
             local_azi_bias[dict_name] = azi_bias
             local_ele_bias[dict_name] = ele_bias
-            quadrant_error[dict_name] = np.mean(confusion_data[dict_name][dirs])
+            quadrant_error[dict_name] = np.mean(QE_data[dict_name][dirs])
 
         # Save to disk with dirset name and dictionary name
         metric_data_list = [
@@ -615,20 +720,14 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                     s=15,
                     zorder=2,
                     c=all_colors[mvp_idcs[i]])
-                #axs[col].violinplot(dataset=elevation_ratings, positions=[target_elevations[i]])
+                
                 # Consider only local responses (quadrant errors are nans)
                 elevation_ratings = elevation_ratings[~np.isnan(elevation_ratings)]
                 all_elevation_ratings.append(elevation_ratings)
 
                 elevation_distances = elevation_ratings - target_elevations[i]
 
-                if target_elevations[i] >= 60.0:
-                    target_distances_fixed = np.array([-15.0, 15.0])
-                else:
-                    target_distances_fixed = np.array([-7.5, 7.5])
-
                 confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
-                #confusions = np.logical_or(elevation_distances < target_distances_fixed[0],  elevation_distances > target_distances_fixed[1])
                 confusion_rate = float(confusions.sum()) / float(confusions.size)
 
                 confusion_rates[i] = confusion_rate
@@ -766,7 +865,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
         else:
             plt.savefig(fname=pjoin(
                 root_dir, 'Figures',
-                name + '_VerticalPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
+                name + '_VerticalPlane_' + EXP.upper() + '.png'), bbox_inches='tight', dpi=300)
 
 
 def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
@@ -1027,7 +1126,7 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
 def plotHemisphereMap(titles,
                       final_dict_names,
                       mean_azi_ele_data,
-                      confusion_data,
+                      QE_data,
                       time_data,
                       coord_x,
                       coord_y,
@@ -1039,7 +1138,7 @@ def plotHemisphereMap(titles,
                       data_to_plot='Localization'):
     """ 
     Plot hemisphere maps of different experiment data.
-    data_to_plot (string): 'Localization', 'ConfusionRate', or 'ResponseTime'.
+    data_to_plot (string): 'Localization', 'QERate', or 'ResponseTime'.
     """
 
     # Plot localization plane data
@@ -1054,11 +1153,11 @@ def plotHemisphereMap(titles,
     r = 0.8
 
     DRAW_CHANNEL_NUMBER = False
-    NORM_RATE = 50  # Confusion Norm Constant
+    NORM_RATE = 50  # QE Norm Constant
 
     if data_to_plot == 'ResponseTime':
         cmap = cm.get_cmap('afmhot_r')
-    if data_to_plot == 'ConfusionRate':
+    if data_to_plot == 'QERate':
         cmap = cm.get_cmap('Reds')
 
     idx = 0
@@ -1110,10 +1209,10 @@ def plotHemisphereMap(titles,
                       color=ring_color,
                       zorder=1)
 
-        if data_to_plot == 'ConfusionRate':
+        if data_to_plot == 'QERate':
             axs[col].scatter(r * coord_x,
                              r * coord_y,
-                             facecolors=cmap(confusion_data[condition] *
+                             facecolors=cmap(QE_data[condition] *
                                              100.0 / NORM_RATE),
                              edgecolors='k',
                              s=100,
@@ -1212,7 +1311,7 @@ def plotHemisphereMap(titles,
                     ha="center",
                     size=14)
 
-    if data_to_plot == 'ConfusionRate':
+    if data_to_plot == 'QERate':
         color_bar_ax = fig.add_axes([0.41, 0.05, 0.2, 0.05])
         norm = colors.Normalize(vmin=0, vmax=NORM_RATE, clip=True)
         cbar = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap),
@@ -1228,7 +1327,7 @@ def plotHemisphereMap(titles,
         cbar.set_label('Median Response Time (sec.)', rotation=0)
         cbar.set_ticks(np.arange(3,14))
 
-    if data_to_plot == 'ConfusionRate':
+    if data_to_plot == 'QERate':
         savename = 'Hemisphere_QuadrantErrors_' + EXP.upper() + '.pdf'
     if data_to_plot == 'Localization':
         savename = 'Hemisphere_Localization_' + EXP.upper() + '.pdf'
@@ -1394,6 +1493,6 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
                         mkr_size=15)
     # plt.show(block=True)
     plt.savefig(fname=pjoin(root_dir, 'Figures',
-                            EXP + '_ResponseTimes_Quantitative.eps'),
+                            EXP + '_ResponseTimes_Quantitative.pdf'),
                 bbox_inches='tight')
     print('')

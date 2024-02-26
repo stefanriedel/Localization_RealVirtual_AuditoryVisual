@@ -14,20 +14,20 @@ from datetime import datetime
 USE_PIERCINGPOINT_DIRECTION = True
 
 RENDER_LATERAL_PLANES = False
-ALL_PLANES = True # Plot all planes in one plot instead of separate plots
+ALL_PLANES = False # Plot all planes in one plot instead of separate plots
 
-RENDER_VERTICAL_PLANES = True
+RENDER_VERTICAL_PLANES = False
 
-RENDER_HEMI_MAP = False
-RENDER_TIME_DATA_PLOT = False
-RENDER_RESPONSETIME_PROGRESSION = True
+RENDER_HEMI_MAP = True
+RENDER_TIME_DATA_PLOT = True
+RENDER_RESPONSETIME_PROGRESSION = False
 
 GEOMETRIC_MEDIAN_RESPONSE = True
 SAVE_ERROR_METRICS = True
 
 NUM_CHANNELS = 25
 
-RENDER_WITH_JASA_NAMES = True
+RENDER_WITH_JASA_NAMES = False
 
 # Tolerance around target direction to consider as hit
 # Otherwise it is a 'quadrant error'
@@ -230,8 +230,8 @@ for dict_name, num_trials in zip(final_dict_names, final_num_trials):
         unit_vectors[participant, :, :] = sph2cart(azi_rad, zen_rad).T
     unit_vector_data[dict_name] = unit_vectors
 
-# Compute confusion indices and rate, and mean directions of remaining points
-confusion_data = {dict_name: np.array([]) for dict_name in final_dict_names}
+# Compute QE indices and rate, and mean directions of remaining points
+QE_data = {dict_name: np.array([]) for dict_name in final_dict_names}
 mean_unit_vector_data = {
     dict_name: np.array([])
     for dict_name in final_dict_names
@@ -249,7 +249,7 @@ target_unit_vector_list = [
 for dict_name, num_trials, targ_unit_vecs in zip(final_dict_names,
                                                  final_num_trials,
                                                  target_unit_vector_list):
-    confusion_percentage = np.zeros(num_trials)
+    QE_percentage = np.zeros(num_trials)
     mean_unit_vectors = np.zeros((num_trials, 3))
     local_azi_ele = [np.array([])] * num_trials
 
@@ -257,13 +257,13 @@ for dict_name, num_trials, targ_unit_vecs in zip(final_dict_names,
     for tr in range(num_trials):
         local_response_vectors = np.array([[0, 0, 0]])
         idx = 0.0
-        confusion_counter = 0.0
+        QE_counter = 0.0
         target_vec = targ_unit_vecs[tr, :]
         not_nan_idcs = []
         for participant in range(num_participants):
             response_vec = response_vectors[participant, tr, :]
             if (np.arccos(np.dot(target_vec, response_vec)) > ANGLE_TOL):
-                confusion_counter += 1.0
+                QE_counter += 1.0
                 nan_vec = np.array([np.nan, np.nan, np.nan])
                 local_response_vectors = np.concatenate(
                     (local_response_vectors, nan_vec[None, :]), axis=0)
@@ -272,7 +272,7 @@ for dict_name, num_trials, targ_unit_vecs in zip(final_dict_names,
                     (local_response_vectors, response_vec[None, :]), axis=0)
                 not_nan_idcs.append(participant)
             idx += 1.0
-        confusion_percentage[tr] = confusion_counter / idx
+        QE_percentage[tr] = QE_counter / idx
         local_response_vectors = local_response_vectors[1:, :]
         azi, zen = cart2sph(local_response_vectors[:, 0],
                             local_response_vectors[:, 1],
@@ -287,7 +287,7 @@ for dict_name, num_trials, targ_unit_vecs in zip(final_dict_names,
             mean_unit_vec = np.nanmedian(local_response_vectors, axis=0)
         mean_unit_vec /= np.linalg.norm(mean_unit_vec)
         mean_unit_vectors[tr, :] = mean_unit_vec
-    confusion_data[dict_name] = confusion_percentage
+    QE_data[dict_name] = QE_percentage
     mean_unit_vector_data[dict_name] = mean_unit_vectors
     local_azi_ele_data[dict_name] = local_azi_ele
 
@@ -298,9 +298,9 @@ targets_azi_ele = np.copy(target_coord_deg)
 
 # Compute mean data for doubled responses
 for dict_name in headphone_dict_names:
-    stacked_confusion = np.array(
-        [confusion_data[dict_name][:25], confusion_data[dict_name][25:]])
-    confusion_data[dict_name] = np.mean(stacked_confusion, axis=0)
+    stacked_QE = np.array(
+        [QE_data[dict_name][:25], QE_data[dict_name][25:]])
+    QE_data[dict_name] = np.mean(stacked_QE, axis=0)
 
     stacked_mean_vecs = np.array([
         mean_unit_vector_data[dict_name][:25, :],
@@ -316,7 +316,7 @@ for dict_name in headphone_dict_names:
 if SAVE_ERROR_METRICS:
     computeAndSaveErrorMetrics(pjoin(root_dir, 'ErrorMetricData'), 'Static',
                                dir_sets, dirset_names, final_dict_names[1:],
-                               local_azi_ele_data, targets_azi_ele, confusion_data, ABS_BIAS=False)
+                               local_azi_ele_data, targets_azi_ele, QE_data, ABS_BIAS=False)
 
 if RENDER_TIME_DATA_PLOT:
     EXP = 'Static'
@@ -342,8 +342,8 @@ if RENDER_VERTICAL_PLANES:
     EXP = 'Static'
     plot_avg_ele = False
     if RENDER_WITH_JASA_NAMES:
-        name_list_vertical = name_list_jasa_static 
-    plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list_vertical,
+        name_list = name_list_jasa_static
+    plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                        deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele, RENDER_WITH_JASA_NAMES)
@@ -369,14 +369,14 @@ for dict_name in final_dict_names:
 if RENDER_HEMI_MAP:
     titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
     EXP = 'Static'
-    plots = ['Localization', 'ConfusionRate', 'ResponseTime']
+    plots = ['Localization', 'QERate', 'ResponseTime']
     main_titles = [True, False, True]
     sub_titles = [True, False, True]
     for plot, main_title, sub_title, in zip(plots, main_titles, sub_titles):
         plotHemisphereMap(titles,
                           final_dict_names,
                           mean_azi_ele_data,
-                          confusion_data,
+                          QE_data,
                           time_data,
                           coord_x,
                           coord_y,
