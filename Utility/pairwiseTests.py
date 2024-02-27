@@ -19,17 +19,12 @@ def posthoc_wilcoxon(data, pairs_to_be_tested, method='auto', alternative_h='two
         non_nan_idcs = np.logical_and(
             ~np.isnan(data[pair[0], :]), ~np.isnan(data[pair[1], :]))
 
-        # res = stats.wilcoxon(
-        #     data[pair[0], non_nan_idcs], data[pair[1], non_nan_idcs],
-        #     alternative=alternative_h, method=method)
-        
         res, T_plus, T_minus = stats_wilcoxon(
             data[pair[0], non_nan_idcs], data[pair[1], non_nan_idcs],
             alternative=alternative_h, method=method)
 
         T = T_plus - T_minus
 
-        #for n in non_nan_idcs:
         if CL_ES == 'greater':
             order = data[pair[0], non_nan_idcs] > data[pair[1], non_nan_idcs]
         else:
@@ -94,14 +89,15 @@ def posthoc_ttest(data, pairs_to_be_tested, alternative_h, p_adjust='BH', alpha=
         sort_indices = np.argsort(pvals)
         corr_factor = pvals.size
         for i in range(pvals.size):
+            pval_before_correction = pvals[sort_indices[i]]
+            # Correction in style of Bonferroni-Holm
             pvals[sort_indices[i]] *= corr_factor
 
             if (pvals[sort_indices[i]] < pvals[sort_indices[i-1]]) and (i > 0) and pvals[sort_indices[i-1]] >= alpha:
-                # EXIT: If a p-value is smaller than the previous after the correction,
-                # meaning a change in the order due to correction, clip it to the corrected previous value.
-                # This avoids a p-value to be significant when the previous/smaller value
-                # was insignificant after correction. This corresponds to an EXIT strategy.
-                pvals[sort_indices[i]] = pvals[sort_indices[i-1]]
+                # EXIT: Avoids a p-value to be significant when the previous/smaller value
+                # was insignificant after correction (meaning we should EXIT).
+                # In this case, just apply more pessimistic correction by multiplying with number of tests (Bonferroni).
+                pvals[sort_indices[i]] = pval_before_correction * (corr_factor + 1)
 
             # Clip p-values to 1.0
             if pvals[sort_indices[i]] > 1.0:
@@ -149,16 +145,3 @@ def posthoc_ttest_ind(data, pairs_to_be_tested, p_adjust='BH'):
 
     return pvals
 
-
-# def posthoc_cliffs_delta(data, pairs_to_be_tested):
-#     cliffs_d = np.zeros(len(pairs_to_be_tested))
-#     idx = 0
-#     for pair in pairs_to_be_tested:
-#         non_nan_idcs = np.logical_and(
-#             ~np.isnan(data[pair[0], :]), ~np.isnan(data[pair[1], :]))
-
-#         cliffs_d[idx], res = cliffs_delta(
-#             data[pair[1], non_nan_idcs].tolist(), data[pair[0], non_nan_idcs].tolist())
-#         idx += 1
-
-#     return cliffs_d
