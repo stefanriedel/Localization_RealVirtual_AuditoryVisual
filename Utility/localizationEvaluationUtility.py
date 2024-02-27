@@ -28,9 +28,6 @@ name_list_azi = [
     '0DEG', '30DEG', '60DEG'
 ]
 
-
-# deg_list = ['0 deg.', '-30 deg.', '30 deg.', '-90 deg.',
-#            '90 deg.', '180 deg.', '-150 deg.', '150 deg.']
 deg_list = [
     r'$0$' + '°', r'$-30$' + '°', r'$30$' + '°', r'$-90$' + '°', r'$90$' + '°',
     r'$180$' + '°', r'$-150$' + '°', r'$150$' + '°'
@@ -141,9 +138,8 @@ all_colors = ['tab:orange'] * 8 + ['tab:red'] * 8 + ['tab:purple'] * 4 + [
 
 all_colors_hex_alpha = ['#ffbf86'] * 8 + ['#ea9393'] * 8 + ['#c9b3de'] * 4 + ['#c5aaa5']  + ['#95cf95'] * 3 + ['#8fbbd9']
 
-
-def MAD(data):
-    return np.nanmedian(np.abs(data - np.nanmedian(data)))
+def MAD(data, axis=0):
+        return np.nanmedian(np.abs(data - np.nanmedian(data, axis=axis)), axis=axis)
 
 
 def geometric_median(X, eps=1e-5):
@@ -278,13 +274,8 @@ def computeCorrelationConfusionRateResponseTimes(local_azi_ele_data, time_data, 
     plt.grid()
     plt.ylabel('Median Response Time (sec.)')
     plt.xlabel('Local Confusion Rate (%)')
-    #plt.show(block=True)
     plt.savefig('Figures/Correlation_CR_RT.png')
 
-
-    print(res)
-    # Stack data before correlation analysis
-    print('done')
     return
 
 
@@ -1496,3 +1487,33 @@ def plotResponseTimesQuantitative(time_data, EXP, real_dict_names,
                             EXP + '_ResponseTimes_Quantitative.pdf'),
                 bbox_inches='tight')
     print('')
+
+
+def plotResponseTimeProgression(time_data_sorted, EXP):
+    if EXP == 'Static':
+        title = 'Response times over 150 static trials (Op.Headph., Indiv, KU100)'
+    else:
+        title = 'Response times over 150 dynamic trials (Op.Headph., KEMAR, KU100)'
+
+    scale = 3
+    plt.figure(figsize=(3*scale,1*scale))
+    plt.fill_between(np.arange(150), np.median(time_data_sorted, axis=0) - MAD(time_data_sorted, axis=0), np.median(time_data_sorted, axis=0)+ MAD(time_data_sorted, axis=0), color='lightgrey')
+    plt.errorbar(x=np.arange(150), y=np.median(time_data_sorted, axis=0), yerr=0, label='median +- MAD')
+    plt.title(title)
+    plt.ylabel('Response Time (sec.)')
+    plt.xlabel('Trial Index')
+    plt.xlim(0,150)
+    plt.xticks(np.arange(0,165,15))
+    plt.legend()
+    plt.ylim(0, 20)
+    plt.grid()
+    plt.tight_layout()
+
+    if EXP == 'Static':
+        savename = 'ResponseTimes_Progression_Static.png'
+    else:
+        savename = 'ResponseTimes_Progression_Dynamic.png'
+
+    plt.savefig(pjoin('Figures', savename))
+    plt.show()
+

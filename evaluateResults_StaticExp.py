@@ -18,9 +18,9 @@ ALL_PLANES = False # Plot all planes in one plot instead of separate plots
 
 RENDER_VERTICAL_PLANES = False
 
-RENDER_HEMI_MAP = True
-RENDER_TIME_DATA_PLOT = True
-RENDER_RESPONSETIME_PROGRESSION = False
+RENDER_HEMI_MAP = False
+RENDER_TIME_DATA_PLOT = False
+RENDER_RESPONSETIME_PROGRESSION = True
 
 GEOMETRIC_MEDIAN_RESPONSE = True
 SAVE_ERROR_METRICS = True
@@ -31,7 +31,6 @@ RENDER_WITH_JASA_NAMES = False
 
 # Tolerance around target direction to consider as hit
 # Otherwise it is a 'quadrant error'
-#ANGLE_TOL = 90.0 / 180.0 * np.pi
 ANGLE_TOL = 90.0 / 180.0 * np.pi
 
 # Opening JSON file
@@ -163,6 +162,14 @@ for (part_result, dict_name, num_trials) in zip(part_results, dict_names,
     azi_ele_data_parts[dict_name] = azi_ele_data_part
     time_data_parts[dict_name] = time_data_part
 
+if RENDER_RESPONSETIME_PROGRESSION:
+    # Evaluate ResponsetTime over trials
+    times_raw = time_data_parts['StaticHeadphones']
+    times_raw_sorted = np.zeros((16,150))
+    for subj in range(16):
+        times_raw_sorted[subj,:] = times_raw[subj, presented_order_trials_hp[subj]]
+    plotResponseTimeProgression(times_raw_sorted, EXP='Static')
+
 final_dict_names = [
     'DynamicOpenEars', 'StaticOpenEars', 'StaticOpenHeadphones',
     'StaticIndivHRTF', 'StaticKU100HRTF'
@@ -179,33 +186,6 @@ azi_ele_data['StaticIndivHRTF'] = azi_ele_data_parts['StaticHeadphones'][:, (
     idcs + 25).tolist() + (idcs + 75 + 25).tolist(), :]
 azi_ele_data['StaticKU100HRTF'] = azi_ele_data_parts['StaticHeadphones'][:, (
     idcs + 50).tolist() + (idcs + 75 + 50).tolist(), :]
-
-if RENDER_RESPONSETIME_PROGRESSION:
-    # Evaluate ResponsetTime over trials
-    times_raw = time_data_parts['StaticHeadphones']
-    times_raw_sorted = np.zeros((16,150))
-    for subj in range(16):
-        times_raw_sorted[subj,:] = times_raw[subj, presented_order_trials_hp[subj]]
-
-    def MAD(data, axis=0):
-        return np.nanmedian(np.abs(data - np.nanmedian(data, axis=axis)), axis=axis)
-    
-    scale = 3
-    plt.figure(figsize=(3*scale,1*scale))
-    plt.fill_between(np.arange(150), np.median(times_raw_sorted, axis=0) - MAD(times_raw_sorted, axis=0), np.median(times_raw_sorted, axis=0)+ MAD(times_raw_sorted, axis=0), color='lightgrey')
-    plt.errorbar(x=np.arange(150), y=np.median(times_raw_sorted, axis=0), yerr=0, label='median +- MAD')
-    plt.title('Response times over 150 static trials (Op.Headph., Indiv, KU100)')
-    plt.ylabel('Response Time (sec.)')
-    plt.xlabel('Trial Index')
-    plt.xlim(0,150)
-    plt.xticks(np.arange(0,165,15))
-    plt.legend()
-    plt.ylim(0, 20)
-    plt.grid()
-    plt.tight_layout()
-
-    plt.savefig('Figures\ResponseTimes_Progression_Static.png')
-    plt.show()
 
 time_data = {dict_name: np.array([]) for dict_name in final_dict_names}
 time_data['DynamicOpenEars'] = time_data_parts['DynamicOpenEars']
@@ -292,9 +272,6 @@ for dict_name, num_trials, targ_unit_vecs in zip(final_dict_names,
     local_azi_ele_data[dict_name] = local_azi_ele
 
 targets_azi_ele = np.copy(target_coord_deg)
-
-
-    # loadAndPrintErrorMetric(pjoin(root_dir, 'ErrorMetricData'), dirset_names)
 
 # Compute mean data for doubled responses
 for dict_name in headphone_dict_names:

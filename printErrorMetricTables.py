@@ -4,12 +4,12 @@ import numpy as np
 root_dir = dirname(__file__)
 
 PRINT_ANGULAR_ERRORS = False
-
 if PRINT_ANGULAR_ERRORS:
     # Requires first saving metric data by executing the evaluation scripts
+    # and setting the flag SAVE_ERROR_METRICS = True
     loadAndPrintErrorMetric(pjoin(root_dir, 'ErrorMetricData'), dirset_names)
 
-# Quadrant-Error Table
+# Quadrant-Error Table Data for paper revision
 EXPS = ['Static', 'Dynamic']
 
 for dirset_name in ['Frontal', 'Rear', 'Overall']:
