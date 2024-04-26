@@ -10,7 +10,6 @@ from scipy.spatial.distance import cdist, euclidean
 import warnings
 import scipy.stats as stats
 
-
 from Utility.loudspeakerPositions import azi, ele
 
 
@@ -475,17 +474,11 @@ def loadAndPrintErrorMetric(load_dir, dirset_names):
                         strong_effect = np.abs(effect_size) >= 0.75
 
                     if significant and ~strong_effect and dict_name != ref_name:
-                        med_mad_string = '\\cellcolor{lightgray!50} ' "%.1f" % np.nanmedian(
-                            metric_data) + ' $\pm$ ' + "%.1f" % MAD(
-                                metric_data) + ' \\,'
+                        med_mad_string = '\\cellcolor{lightgray!50} ' "%.1f" % np.nanmedian(metric_data) + ' $\pm$ ' + "%.1f" % MAD(metric_data) + ' \\,'
                     elif significant and strong_effect and dict_name != ref_name:
-                        med_mad_string = '\\cellcolor{lightgray!50} ' + '\\textbf{' + "%.1f" % np.nanmedian(
-                            metric_data) + ' $\pm$ ' + "%.1f" % MAD(
-                                metric_data) + '}' + ' \\,'
+                        med_mad_string = '\\cellcolor{lightgray!50} ' + '\\textbf{' + "%.1f" % np.nanmedian(metric_data) + ' $\pm$ ' + "%.1f" % MAD(metric_data) + '}' + ' \\,'
                     else:
-                        med_mad_string = "%.1f" % np.nanmedian(
-                            metric_data) + ' $\pm$ ' + "%.1f" % MAD(
-                                metric_data)
+                        med_mad_string = "%.1f" % np.nanmedian(metric_data) + ' $\pm$ ' + "%.1f" % MAD(metric_data)
 
                     if dict_name == ref_name and EXP == 'Static':
                         print(print_name + ' ($^\circ$)' + ' & ' +
@@ -665,7 +658,9 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
 
             slope, intercept, sigma, bias = computeMetrics(
                 conditions_ele, target_elevations, median_statistic=True)
-            axs[col].text(x=48,
+            
+            g_x = 44
+            axs[col].text(x=g_x,
                           y=3,
                           s=r'$g = $' + str(round(slope, 2)),
                           fontsize=10)
@@ -690,8 +685,12 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
 
             significant = pvals < 0.05
 
+            if col >= 1:
+                confusions_per_condition = np.zeros((mvp_idcs.size, 32), dtype=bool)
+            else:
+                confusions_per_condition = np.zeros((mvp_idcs.size, 16), dtype=bool)
+
             confusion_rates = np.zeros(mvp_idcs.size)
-            all_elevation_ratings = []
             for i in range(mvp_idcs.size):
                 elevation_ratings = local_azi_ele_data[condition][
                     mvp_idcs[i]][:, 1]
@@ -700,7 +699,7 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                         (elevation_ratings,
                          local_azi_ele_data[condition][mvp_idcs[i] + 25][:,
                                                                          1]))
-                if plot_avg_ele:  # PLOT MEAN DATA OF DOUBLED RESPONSES
+                if plot_avg_ele: # PLOT MEAN DATA OF DOUBLED RESPONSES
                     elevation_ratings = conditions_ele[i, :]
                 median_ratings[i] = np.nanmedian(elevation_ratings)
                 axs[col].scatter(
@@ -714,18 +713,21 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 
                 # Consider only local responses (quadrant errors are nans)
                 elevation_ratings = elevation_ratings[~np.isnan(elevation_ratings)]
-                all_elevation_ratings.append(elevation_ratings)
 
                 elevation_distances = elevation_ratings - target_elevations[i]
 
                 confusions = np.logical_or(elevation_distances < target_distances[i,0],  elevation_distances > target_distances[i,1])
+
                 confusion_rate = float(confusions.sum()) / float(confusions.size)
 
                 confusion_rates[i] = confusion_rate
 
                 #add grid lines manually 
-                axs[col].text(-44, -42, s='CR(%):', fontsize=9, style='italic')
-                axs[col].text(target_elevations[i] - 2, -42, s=str(round(confusion_rate*100)), fontsize=9, style='italic')
+                if i == 0:
+                    axs[col].text(-44, -42, s='LCR:', fontsize=9, style='italic')
+                axs[col].text(target_elevations[i] - 2, -42, s=str(round(confusion_rate*100)) , fontsize=9, style='italic')
+                if i == mvp_idcs.size - 1:
+                    axs[col].text(target_elevations[i] + 8, -42, s=' (%)' , fontsize=9, style='italic')
       
                 grid_elevations = np.array([-15,0,15,30,60])
                 for i in range(grid_elevations.size):
@@ -735,10 +737,9 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                     axs[col].plot([grid_elevations[i], grid_elevations[i]], [-35, 90], zorder=0, lw=0.5, color='gray', ls=(0, (1, 3)))
                 
 
-            #axs[col].violinplot(dataset=all_elevation_ratings, positions=target_elevations, widths=20, bw_method=0.25)
-            axs[col].text(x=48,
+            axs[col].text(x=g_x,
                     y=-13,
-                    s=r'$\overline{\mathrm{CR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
+                    s=r'$\overline{\mathrm{LCR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
                     fontsize=10)
 
             PLOT_PVALUES = False
@@ -859,6 +860,189 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 name + '_VerticalPlane_' + EXP.upper() + '.png'), bbox_inches='tight', dpi=300)
 
 
+# def computeLocalConfusionDataElevation(final_dict_names, local_azi_ele_data, EXP, root_dir):
+#     if EXP == 'Static':
+#         conditions = final_dict_names[1:]
+#     if EXP == 'Dynamic':
+#         conditions = [
+#             final_dict_names[0], final_dict_names[1], final_dict_names[3],
+#             final_dict_names[2]
+#         ]
+
+#     target_elevations = ele
+#     target_distances_ele_l1 = np.array([np.array([-7.5, 7.5]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5])])
+#     target_distances_ele_l2 = np.array([np.array([-7.5, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-7.5, 15]), np.array([-7.5, 15])])
+#     target_distances_ele_l3 = np.array([np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15])])
+#     target_distances_rest = np.array([np.array([-15, 0]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5])])
+
+#     target_distances =  np.concatenate((target_distances_ele_l1,target_distances_ele_l2,target_distances_ele_l3,target_distances_rest))
+    
+#     local_confusions_elevation = {
+#             dict_name: {}
+#             for dict_name in conditions
+#         }
+#     for dict_name in conditions:
+#         num_trials = len(local_azi_ele_data[dict_name])
+
+#         local_response_list = []
+#         confusions_list = []
+#         confusion_rate_list = []
+#         for tr in range(NUM_CHANNELS):        
+#             elevation_ratings = local_azi_ele_data[dict_name][tr][:, 1]
+#             if dict_name != 'StaticOpenEars' and dict_name != 'DynamicOpenEars' :
+#                 elevation_ratings = np.concatenate(
+#                     (elevation_ratings,
+#                         local_azi_ele_data[dict_name][tr + 25][:,1]))
+                
+#             # Init confusions array with nans
+#             num_raw_responses = elevation_ratings.size
+#             confusions_with_nans = np.empty(num_raw_responses)
+#             confusions_with_nans[:] = np.nan      
+
+#             # Consider only local responses (quadrant errors are nans)
+#             local_response_idcs = ~np.isnan(elevation_ratings)
+#             local_elevation_ratings = elevation_ratings[local_response_idcs]
+#             elevation_distances = local_elevation_ratings - target_elevations[tr]
+#             confusions = np.logical_or(elevation_distances < target_distances[tr,0],  elevation_distances > target_distances[tr,1])
+
+#             for local_idx, idx in zip(np.where(local_response_idcs == True)[0], range(num_raw_responses)):
+#                 confusions_with_nans[local_idx] = confusions[idx]
+
+#             confusion_rate = float(np.nansum(confusions_with_nans)) / float(confusions.size)
+
+#             local_response_list.append(local_response_idcs)
+#             confusions_list.append(confusions_with_nans)
+#             confusion_rate_list.append(confusion_rate)
+
+#         local_confusions_elevation[dict_name] = {'LocalResponseIdcs': local_response_list, 'Confusions': confusions_list, 'ConfusionRates': confusion_rate_list}
+
+#     np.save(file=pjoin(root_dir,
+#                 'ErrorMetricData', 'LocalConfusionDataElevation' + EXP + '.npy'),
+#                 arr=local_confusions_elevation,
+#                 allow_pickle=True)
+#     return
+
+def computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, DIM, root_dir):
+    if EXP == 'Static':
+        conditions = final_dict_names[1:]
+    if EXP == 'Dynamic':
+        conditions = [
+            final_dict_names[0], final_dict_names[1], final_dict_names[3],
+            final_dict_names[2]
+        ]
+
+    if DIM == 'Elevation':
+        target_angles = ele
+        target_distances_ele_l1 = np.array([np.array([-7.5, 7.5]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5])])
+        target_distances_ele_l2 = np.array([np.array([-7.5, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-7.5, 15]), np.array([-7.5, 15])])
+        target_distances_ele_l3 = np.array([np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15])])
+        target_distances_rest = np.array([np.array([-15, 0]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5])])
+        target_distances =  np.concatenate((target_distances_ele_l1,target_distances_ele_l2,target_distances_ele_l3,target_distances_rest))
+    if DIM == 'Azimuth':
+        target_angles = azi
+        target_distances_azi_l1 = np.array([np.array([-15,15]), np.array([-15, 30]), np.array([-30,30]), np.array([-30,15]), np.array([-15,15]),  np.array([-15,30]),  np.array([-30,30]), np.array([-30,15])])
+        target_distances_azi_l2 = np.array([np.array([-15,15]), np.array([-15, 30]), np.array([-30,30]), np.array([-30,15]), np.array([-15,15]),  np.array([-15,30]),  np.array([-30,30]), np.array([-30,15])])
+        target_distances_azi_l3 = np.array([np.array([-45, 45]), np.array([-45, 45]), np.array([-45, 45]), np.array([-45, 45])])
+        target_distances_rest = np.array([np.array([-180, 180]), np.array([-30,30]), np.array([-30,15]), np.array([-15, 15]), np.array([-15, 15])])
+        target_distances =  np.concatenate((target_distances_azi_l1, target_distances_azi_l2, target_distances_azi_l3, target_distances_rest))
+    
+    local_confusions = {
+            dict_name: {}
+            for dict_name in conditions
+        }
+    for dict_name in conditions:
+        local_response_list = []
+        confusions_list = []
+        confusion_rate_list = []
+        for tr in range(NUM_CHANNELS):
+            if DIM == 'Elevation':
+                angle_idx = 1
+            if DIM == 'Azimuth':
+                angle_idx = 0
+
+            angular_ratings = local_azi_ele_data[dict_name][tr][:, angle_idx]
+            if dict_name != 'StaticOpenEars' and dict_name != 'DynamicOpenEars' :
+                angular_ratings = np.concatenate(
+                    (angular_ratings,
+                        local_azi_ele_data[dict_name][tr + 25][:, angle_idx]))
+                
+            # Init confusions array with nans
+            num_raw_responses = angular_ratings.size
+            confusions_with_nans = np.empty(num_raw_responses)
+            confusions_with_nans[:] = np.nan      
+
+            # Consider only local responses (quadrant errors are nans)
+            local_response_idcs = ~np.isnan(angular_ratings)
+            local_angular_ratings = angular_ratings[local_response_idcs]
+
+            if DIM == 'Azimuth':
+                # Special case for azimuth data at +-180 degree
+                if target_angles[tr] == 180:
+                    local_angular_ratings = (local_angular_ratings + 360.0) % 360.0 
+
+            angular_distances = local_angular_ratings - target_angles[tr]
+            confusions = np.logical_or(angular_distances < target_distances[tr,0],  angular_distances > target_distances[tr,1])
+
+            for local_idx, idx in zip(np.where(local_response_idcs == True)[0], range(num_raw_responses)):
+                confusions_with_nans[local_idx] = confusions[idx]
+
+            confusion_rate = float(np.nansum(confusions_with_nans)) / float(confusions.size)
+
+            local_response_list.append(local_response_idcs)
+            confusions_list.append(confusions_with_nans)
+            confusion_rate_list.append(confusion_rate)
+
+        local_confusions[dict_name] = {'LocalResponseIdcs': local_response_list, 'Confusions': confusions_list, 'ConfusionRates': confusion_rate_list}
+
+    if DIM == 'Elevation':
+        savename  = 'LocalConfusionDataElevation'
+    if DIM == 'Azimuth':
+        savename  = 'LocalConfusionDataAzimuth'
+    np.save(file=pjoin(root_dir,
+                'ErrorMetricData', savename + EXP + '.npy'),
+                arr=local_confusions,
+                allow_pickle=True)
+    return
+
+def testGroupedLocalConfusionRate(EXP, root_dir, confusion_rate_data, condition_pair, directions):
+    N_first = np.zeros(len(directions))
+    N_second = np.zeros(len(directions))
+    K_first = np.zeros(len(directions))
+    K_second = np.zeros(len(directions))
+        
+    for dir, i in zip(directions, range(len(directions))):
+        first_data = confusion_rate_data[condition_pair[0]]
+        first_confusions = first_data['Confusions'][dir]
+
+        second_data = confusion_rate_data[condition_pair[1]]
+        second_confusions = second_data['Confusions'][dir]
+
+        if condition_pair[0] == 'StaticOpenEars' or condition_pair[0] == 'DynamicOpenEars':
+            first_confusions_mean = first_confusions
+        else:
+            first_confusions_mean = np.nanmean(np.array([first_confusions[:16], first_confusions[16:]]), axis=0)
+
+        n_first = np.sum(~np.isnan(first_confusions_mean)) # Number of local data points
+        k_first = np.nansum(first_confusions_mean) # Number of confusion in local data points
+
+        second_confusions_mean = np.nanmean(np.array([second_confusions[:16], second_confusions[16:]]), axis=0)
+        n_second = np.sum(~np.isnan(second_confusions_mean)) # Number of local data points
+        k_second = np.nansum(second_confusions_mean) # Number of confusion in local data points
+
+        N_first[i] = n_first
+        K_first[i] = k_first
+        N_second[i] = n_second
+        K_second[i] = k_second
+
+    k = int(np.round(np.sum(K_second)))
+    n = int(np.round(np.sum(N_second)))
+    p = float(np.round(np.sum(K_first))) / np.sum(N_first)
+
+    res = stats.binomtest(k, n, p, alternative='greater')
+    print('Directions: ' + str(directions), 'Conditions: ' + str(condition_pair), 'pvalue: ' + str(res.pvalue))
+    return
+    
+
 def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                        deg_list, title_bool_list, titles, xaxis_bool_list,
                        final_dict_names, local_azi_ele_data, coord_x, coord_y,
@@ -975,14 +1159,14 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
 
                 # Confusion rates per direction
                 if not ALL_PLANES:
-                    axs[col].text(225, 220, s='CR:', fontsize=9, style='italic')
+                    axs[col].text(225, 220, s='LCR:', fontsize=9, style='italic')
                     axs[col].text(target_azimuths[i] - 2, 220, s=str(round(confusion_rate*100)), fontsize=9, style='italic')
             all_confusion_rates[col].append(confusion_rates)
 
             if not ALL_PLANES:
                 axs[col].text(x=-30,
                         y=150,
-                        s=r'$\overline{\mathrm{CR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
+                        s=r'$\overline{\mathrm{LCR}} = $' + str(round(np.mean(confusion_rates*100))) + '%',
                         fontsize=10)
                 if col == 0:
                     axs[col].set_ylabel('Azimuth Response (deg.)')
@@ -1077,7 +1261,7 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
 
             axs[col].text(x=-30,
                         y=150,
-                        s=r'$\overline{\mathrm{CR}} = $' + str(round(CR_GLOBAL_MEAN*100)) + '%',
+                        s=r'$\overline{\mathrm{LCR}} = $' + str(round(CR_GLOBAL_MEAN*100)) + '%',
                         fontsize=10)
             
         # Plot global accuracy measures in case of combined plot
@@ -1117,6 +1301,8 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
 def plotHemisphereMap(titles,
                       final_dict_names,
                       mean_azi_ele_data,
+                      azi_ele_data,
+                      plot_idcs,
                       QE_data,
                       time_data,
                       coord_x,
@@ -1134,7 +1320,7 @@ def plotHemisphereMap(titles,
 
     # Plot localization plane data
     NUM_CHANNELS = 25
-    plot_idcs = np.arange(NUM_CHANNELS)
+    #plot_idcs = np.arange(NUM_CHANNELS)
     channels = range(0, NUM_CHANNELS)
     num_rows = 1
     num_cols = 4
@@ -1168,7 +1354,7 @@ def plotHemisphereMap(titles,
 
     # ele_cls = [plot_colors, plot_colors_rep, plot_colors_rep, plot_colors_rep]
 
-    markeredge_colors = plot_colors
+    markeredge_colors = all_colors
 
     if EXP == 'Dynamic':
         conditions = [
@@ -1233,9 +1419,41 @@ def plotHemisphereMap(titles,
                                  zorder=2)
 
         if data_to_plot == 'Localization':
-            axs[col].scatter(r * coord_x,
-                             r * coord_y,
-                             facecolors=markeredge_colors,
+            DRAW_RAW_RESPONSES = True
+            if DRAW_RAW_RESPONSES:
+                #rnd_cls = rand_cls[col]
+                for participant in range(16):
+
+                    if col > 0:
+                        idcs = np.concatenate((plot_idcs, plot_idcs+25))
+                        cls = np.concatenate((plot_colors, plot_colors))
+                    else:
+                        idcs = plot_idcs
+                        cls = plot_colors
+                        
+                    azi = azi_ele_data[condition][participant, idcs, 0]
+                    ele = azi_ele_data[condition][participant, idcs, 1]
+
+                    loc_data_x, loc_data_y = convertAziEleToPlane(azi, ele)
+                    axs[col].scatter(r * loc_data_x,
+                                    r * loc_data_y,
+                                    edgecolors='k',
+                                    s=10,
+                                    alpha=0.3,
+                                    zorder=2,
+                                    c=cls,
+                                    marker='o')
+
+            axs[col].scatter(r * np.delete(coord_x,plot_idcs),
+                             r * np.delete(coord_y,plot_idcs),
+                             facecolors='white',
+                             edgecolors='k',
+                             s=100,
+                             alpha=0.6,
+                             zorder=2)
+            axs[col].scatter(r * coord_x[plot_idcs],
+                             r * coord_y[plot_idcs],
+                             facecolors=plot_colors,
                              edgecolors='k',
                              s=100,
                              alpha=0.6,
@@ -1253,10 +1471,10 @@ def plotHemisphereMap(titles,
                              zorder=2,
                              c=mkr_cls,
                              marker='D')
-            for n in range(NUM_CHANNELS):
-                axs[col].plot([r * coord_x[n], r * loc_data_x[n]],
-                              [r * coord_y[n], r * loc_data_y[n]],
-                              color=mkr_cls[n],
+            for n, i in zip(plot_idcs, range(plot_idcs.size)):
+                axs[col].plot([r * coord_x[n], r * loc_data_x[i]],
+                              [r * coord_y[n], r * loc_data_y[i]],
+                              color='k',#mkr_cls[i],
                               alpha=0.8,
                               zorder=1,
                               ls=':')
@@ -1321,12 +1539,12 @@ def plotHemisphereMap(titles,
     if data_to_plot == 'QERate':
         savename = 'Hemisphere_QuadrantErrors_' + EXP.upper() + '.pdf'
     if data_to_plot == 'Localization':
-        savename = 'Hemisphere_Localization_' + EXP.upper() + '.pdf'
+        savename = 'Hemisphere_Localization_' + EXP.upper() + '.png'
     if data_to_plot == 'ResponseTime':
         savename = 'Hemisphere_ResponseTime_' + EXP.upper() + '.pdf'
 
     plt.savefig(fname=pjoin(root_dir, 'Figures', savename),
-                bbox_inches='tight')
+                bbox_inches='tight', dpi=600)
     plt.show(block=True)
     return
 

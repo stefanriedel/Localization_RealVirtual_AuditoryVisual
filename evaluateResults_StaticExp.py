@@ -14,16 +14,18 @@ from datetime import datetime
 USE_PIERCINGPOINT_DIRECTION = True
 
 RENDER_LATERAL_PLANES = False
-ALL_PLANES = False # Plot all planes in one plot instead of separate plots
+ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
 RENDER_VERTICAL_PLANES = False
 
+DO_STATISTICAL_TESTS = True
+
 RENDER_HEMI_MAP = False
 RENDER_TIME_DATA_PLOT = False
-RENDER_RESPONSETIME_PROGRESSION = True
+RENDER_RESPONSETIME_PROGRESSION = False
 
 GEOMETRIC_MEDIAN_RESPONSE = True
-SAVE_ERROR_METRICS = True
+SAVE_ERROR_METRICS = False
 
 NUM_CHANNELS = 25
 
@@ -324,6 +326,25 @@ if RENDER_VERTICAL_PLANES:
                        deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele, RENDER_WITH_JASA_NAMES)
+    
+if DO_STATISTICAL_TESTS:
+    EXP = 'Static'
+    #computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Elevation', root_dir)
+    #computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Azimuth', root_dir)
+
+    # Do tests on slope g and local confusion rates LCR
+    condition_pair = ['StaticIndivHRTF', 'StaticKU100HRTF']
+    #condition_pair = ['StaticOpenEars', 'StaticOpenHeadphones']
+
+    directions = [7,22,15]
+    #directions = [6,21,14]
+
+    confusion_rate_data = np.load(file=pjoin(root_dir,
+                'ErrorMetricData', 'LocalConfusionDataElevation' + EXP + '.npy'), allow_pickle=True)
+    confusion_rate_data = confusion_rate_data.tolist()
+    print('Elevation LCR Test:')
+    testGroupedLocalConfusionRate(EXP, root_dir, confusion_rate_data, condition_pair, directions)
+
 
 # Reassure normalized mean response vectors and convert to azi ele for hemi maps
 mean_azi_ele_data = {dict_name: np.array([]) for dict_name in final_dict_names}
@@ -346,13 +367,16 @@ for dict_name in final_dict_names:
 if RENDER_HEMI_MAP:
     titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
     EXP = 'Static'
-    plots = ['Localization', 'QERate', 'ResponseTime']
+    plots = ['Localization']#, 'QERate', 'ResponseTime']
     main_titles = [True, False, True]
     sub_titles = [True, False, True]
+    plot_idcs = np.array([17, 19])#np.array([17, 19])#np.arange(NUM_CHANNELS)
     for plot, main_title, sub_title, in zip(plots, main_titles, sub_titles):
         plotHemisphereMap(titles,
                           final_dict_names,
                           mean_azi_ele_data,
+                          azi_ele_data,
+                          plot_idcs,
                           QE_data,
                           time_data,
                           coord_x,

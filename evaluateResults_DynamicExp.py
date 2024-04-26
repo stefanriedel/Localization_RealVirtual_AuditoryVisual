@@ -14,20 +14,22 @@ from datetime import datetime
 USE_PIERCINGPOINT_DIRECTION = True
 
 RENDER_LATERAL_PLANES = False
-ALL_PLANES = False # Plot all planes in one plot instead of separate plots
+ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
 RENDER_VERTICAL_PLANES = False
 
+DO_STATISTICAL_TESTS = True
+
 RENDER_HEMI_MAP = False
 RENDER_TIME_DATA_PLOT = False
-RENDER_RESPONSETIME_PROGRESSION = True
+RENDER_RESPONSETIME_PROGRESSION = False
 
 GEOMETRIC_MEDIAN_RESPONSE = True
-SAVE_ERROR_METRICS = True
+SAVE_ERROR_METRICS = False
 
 NUM_CHANNELS = 25
 
-RENDER_WITH_JASA_NAMES = False
+RENDER_WITH_JASA_NAMES = True
 
 COMPUTE_CORRELATION_CR_RT = True
 
@@ -329,6 +331,22 @@ if RENDER_VERTICAL_PLANES:
                        deg_list, title_bool_list, titles, xaxis_bool_list, final_dict_names,
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele, RENDER_WITH_JASA_NAMES)
+    
+if DO_STATISTICAL_TESTS:
+    EXP = 'Dynamic'
+    computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Elevation', root_dir)
+    computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Azimuth', root_dir)
+
+    # Do tests on slope g and local confusion rates LCR
+    #condition_pair = ['StaticIndivHRTF', 'StaticKU100HRTF']
+    condition_pair = ['DynamicOpenEars', 'DynamicKEMARHRTF']
+
+    directions = range(8,16)
+    confusion_rate_data = np.load(file=pjoin(root_dir,
+                'ErrorMetricData', 'LocalConfusionDataAzimuth' + EXP + '.npy'), allow_pickle=True)
+    confusion_rate_data = confusion_rate_data.tolist()
+    print('Azimuth LCR Test:')
+    testGroupedLocalConfusionRate(EXP, root_dir, confusion_rate_data, condition_pair, directions)
 
 # Reassure normalized mean response vectors and convert to azi ele for hemi maps
 for dict_name in final_dict_names:
