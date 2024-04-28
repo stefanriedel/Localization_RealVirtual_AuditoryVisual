@@ -890,8 +890,6 @@ def computeSlopeData(final_dict_names, local_azi_ele_data, EXP, DIM, root_dir):
             for dict_name in conditions
         }
     for dict_name in conditions:
-        #slope_data = []
-        slope_data = {}
         for idcs, name, target_angles  in zip(group_idcs_list, group_name_list, target_list):
             if dict_name == 'StaticOpenEars' or dict_name == 'DynamicOpenEars':
                 # single responses
@@ -932,7 +930,36 @@ def computeSlopeData(final_dict_names, local_azi_ele_data, EXP, DIM, root_dir):
                 'ErrorMetricData', savename + EXP + '.npy'),
                 arr=regression_slope,
                 allow_pickle=True)   
-    return 
+    return
+
+def testGroupedSlopeData(EXP, root_dir, slope_data, condition_pair, planes):
+    g_first = np.array([])
+    g_second = np.array([])
+
+    for plane, i in zip(planes, range(len(planes))):
+        first_data = slope_data[condition_pair[0]][plane]
+        second_data = slope_data[condition_pair[1]][plane]
+
+        g_first = np.concatenate((g_first, first_data))
+        g_second = np.concatenate((g_second, second_data))
+
+    non_nan_idcs_first = ~np.isnan(g_first)
+    non_nan_idcs_second = ~np.isnan(g_second)
+    non_nan_idcs = np.logical_and(non_nan_idcs_first, non_nan_idcs_second)
+
+    g_first = g_first[non_nan_idcs]
+    g_second = g_second[non_nan_idcs]
+
+    if 1:
+        plt.figure()
+        plt.boxplot([g_first, g_second])
+        plt.show(block=True)
+
+    res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
+    cohens_d = (np.mean(g_first) - np.mean(g_second)) / (np.sqrt((np.std(g_first) ** 2 + np.std(g_second) ** 2) / 2))
+
+    print('Directions: ' + str(planes), 'Conditions: ' + str(condition_pair), 'pvalue: ' + str(res.pvalue), 'cohens_d:' + str(cohens_d))
+    return  
 
 
 def computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, DIM, root_dir):
@@ -1309,7 +1336,7 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
     #plt.show(block=True)
     if ALL_PLANES:
         plt.savefig(fname=pjoin(
-            root_dir, 'Figures', 'LateralPlane_' + EXP.upper() + '.png'), bbox_inches='tight', dpi=300)
+            root_dir, 'Figures', 'LateralPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
 
 def plotHemisphereMap(titles,
                       final_dict_names,
