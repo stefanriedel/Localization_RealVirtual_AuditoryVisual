@@ -493,27 +493,27 @@ def loadAndPrintErrorMetric(load_dir, dirset_names):
         print('\n\n')
 
 
-def computeMetrics(response_elevations,
-                   target_elevations,
+def computeMetrics(response_angles,
+                   target_angles,
                    median_statistic=True):
-    N = response_elevations.shape[1]
+    N = response_angles.shape[1]
     if not median_statistic:
-        response_elevations = response_elevations.flatten()
-        target_elevations = np.tile(target_elevations,
+        response_angles = response_angles.flatten()
+        target_angles = np.tile(target_angles,
                                     reps=(N, 1)).flatten('F')
-        non_nan_idcs = ~np.isnan(response_elevations)
+        non_nan_idcs = ~np.isnan(response_angles)
 
-        res = stats.linregress(target_elevations[non_nan_idcs],
-                               response_elevations[non_nan_idcs])
+        res = stats.linregress(target_angles[non_nan_idcs],
+                               response_angles[non_nan_idcs])
         slope = res.slope
         intercept = res.intercept
 
         sigma = np.sqrt(
-            np.mean((target_elevations[non_nan_idcs] -
-                     response_elevations[non_nan_idcs])**2))
+            np.mean((target_angles[non_nan_idcs] -
+                     response_angles[non_nan_idcs])**2))
 
-        bias = np.mean((response_elevations[non_nan_idcs] -
-                        target_elevations[non_nan_idcs]))
+        bias = np.mean((response_angles[non_nan_idcs] -
+                        target_angles[non_nan_idcs]))
     else:
         slope = np.zeros(N)
         slope[:] = np.nan
@@ -524,23 +524,23 @@ def computeMetrics(response_elevations,
         sigma = np.zeros(N)
         sigma[:] = np.nan
         for n in range(N):
-            resp_elevations = response_elevations[:, n]
+            resp_elevations = response_angles[:, n]
             non_nan_idcs = ~np.isnan(resp_elevations)
 
-            if not target_elevations[non_nan_idcs].size >= 1:
+            if not target_angles[non_nan_idcs].size >= 1:
                 continue
 
-            res = stats.linregress(target_elevations[non_nan_idcs],
+            res = stats.linregress(target_angles[non_nan_idcs],
                                    resp_elevations[non_nan_idcs])
             slope[n] = res.slope
             intercept[n] = res.intercept
 
             sigma[n] = np.sqrt(
-                np.mean((target_elevations[non_nan_idcs] -
+                np.mean((target_angles[non_nan_idcs] -
                          resp_elevations[non_nan_idcs])**2))
 
             bias[n] = np.mean((resp_elevations[non_nan_idcs] -
-                               target_elevations[non_nan_idcs]))
+                               target_angles[non_nan_idcs]))
         slope = np.nanmedian(slope)
         intercept = np.nanmedian(intercept)
         bias = np.nanmedian(bias)
@@ -860,67 +860,80 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                 name + '_VerticalPlane_' + EXP.upper() + '.png'), bbox_inches='tight', dpi=300)
 
 
-# def computeLocalConfusionDataElevation(final_dict_names, local_azi_ele_data, EXP, root_dir):
-#     if EXP == 'Static':
-#         conditions = final_dict_names[1:]
-#     if EXP == 'Dynamic':
-#         conditions = [
-#             final_dict_names[0], final_dict_names[1], final_dict_names[3],
-#             final_dict_names[2]
-#         ]
+def computeSlopeData(final_dict_names, local_azi_ele_data, EXP, DIM, root_dir):
+    if EXP == 'Static':
+        conditions = final_dict_names[1:]
+    if EXP == 'Dynamic':
+        conditions = [
+            final_dict_names[0], final_dict_names[1], final_dict_names[3],
+            final_dict_names[2]
+        ]
 
-#     target_elevations = ele
-#     target_distances_ele_l1 = np.array([np.array([-7.5, 7.5]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 15]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5])])
-#     target_distances_ele_l2 = np.array([np.array([-7.5, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-7.5, 15]), np.array([-7.5, 15])])
-#     target_distances_ele_l3 = np.array([np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15]), np.array([-15, 15])])
-#     target_distances_rest = np.array([np.array([-15, 0]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5]), np.array([-7.5, 7.5])])
+    if DIM == 'Azimuth':
+        group_idcs_list = idcs_list_azi
+        group_idcs_list.append(np.concatenate((idcs_list_azi[0], idcs_list_azi[1], idcs_list_azi[2])))
+        group_name_list = name_list_azi
+        group_name_list.append('0DEG+30DEG+60DEG')
+        target_list = target_azi_list
+        target_list.append(np.concatenate((target_list[0], target_list[1], target_list[2])))
+        angle_idx = 0
+    elif DIM == 'Elevation':
+        group_idcs_list = idcs_list
+        group_name_list = name_list
+        target_list = target_ele_list
+        angle_idx = 1
+    else:
+        print('Dimension not properply specified!')
 
-#     target_distances =  np.concatenate((target_distances_ele_l1,target_distances_ele_l2,target_distances_ele_l3,target_distances_rest))
-    
-#     local_confusions_elevation = {
-#             dict_name: {}
-#             for dict_name in conditions
-#         }
-#     for dict_name in conditions:
-#         num_trials = len(local_azi_ele_data[dict_name])
+    regression_slope = {
+            dict_name: {}
+            for dict_name in conditions
+        }
+    for dict_name in conditions:
+        #slope_data = []
+        slope_data = {}
+        for idcs, name, target_angles  in zip(group_idcs_list, group_name_list, target_list):
+            if dict_name == 'StaticOpenEars' or dict_name == 'DynamicOpenEars':
+                # single responses
+                response_angles = np.asarray(local_azi_ele_data[dict_name])[idcs, :, angle_idx]
+            else:
+                # averaging of doubled responses before regression
+                response_angles_first = np.asarray(
+                    local_azi_ele_data[dict_name])[idcs, :, angle_idx]
+                response_angles_second = np.asarray(
+                    local_azi_ele_data[dict_name])[idcs + 25, :, angle_idx]
+                stacked = np.array([response_angles_first, response_angles_second])
+                response_angles = np.nanmean(stacked, axis=0)
 
-#         local_response_list = []
-#         confusions_list = []
-#         confusion_rate_list = []
-#         for tr in range(NUM_CHANNELS):        
-#             elevation_ratings = local_azi_ele_data[dict_name][tr][:, 1]
-#             if dict_name != 'StaticOpenEars' and dict_name != 'DynamicOpenEars' :
-#                 elevation_ratings = np.concatenate(
-#                     (elevation_ratings,
-#                         local_azi_ele_data[dict_name][tr + 25][:,1]))
-                
-#             # Init confusions array with nans
-#             num_raw_responses = elevation_ratings.size
-#             confusions_with_nans = np.empty(num_raw_responses)
-#             confusions_with_nans[:] = np.nan      
+            if DIM == 'Azimuth':
+                response_angles[response_angles < -170.0] = (response_angles[response_angles < -170.0] + 360.0) % 360.0
 
-#             # Consider only local responses (quadrant errors are nans)
-#             local_response_idcs = ~np.isnan(elevation_ratings)
-#             local_elevation_ratings = elevation_ratings[local_response_idcs]
-#             elevation_distances = local_elevation_ratings - target_elevations[tr]
-#             confusions = np.logical_or(elevation_distances < target_distances[tr,0],  elevation_distances > target_distances[tr,1])
+            N = response_angles.shape[1]
+            slope = np.zeros(N)
+            slope[:] = np.nan
 
-#             for local_idx, idx in zip(np.where(local_response_idcs == True)[0], range(num_raw_responses)):
-#                 confusions_with_nans[local_idx] = confusions[idx]
+            for n in range(N):
+                resp_n = response_angles[:, n]
+                non_nan_idcs = ~np.isnan(resp_n)
 
-#             confusion_rate = float(np.nansum(confusions_with_nans)) / float(confusions.size)
+                if not target_angles[non_nan_idcs].size >= 1:
+                    continue
 
-#             local_response_list.append(local_response_idcs)
-#             confusions_list.append(confusions_with_nans)
-#             confusion_rate_list.append(confusion_rate)
+                res = stats.linregress(target_angles[non_nan_idcs],
+                                        resp_n[non_nan_idcs])
+                slope[n] = res.slope
+            regression_slope[dict_name][name] = slope 
 
-#         local_confusions_elevation[dict_name] = {'LocalResponseIdcs': local_response_list, 'Confusions': confusions_list, 'ConfusionRates': confusion_rate_list}
+    if DIM == 'Elevation':
+        savename  = 'SlopeDataElevation'
+    if DIM == 'Azimuth':
+        savename  = 'SlopeDataAzimuth'
+    np.save(file=pjoin(root_dir,
+                'ErrorMetricData', savename + EXP + '.npy'),
+                arr=regression_slope,
+                allow_pickle=True)   
+    return 
 
-#     np.save(file=pjoin(root_dir,
-#                 'ErrorMetricData', 'LocalConfusionDataElevation' + EXP + '.npy'),
-#                 arr=local_confusions_elevation,
-#                 allow_pickle=True)
-#     return
 
 def computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, DIM, root_dir):
     if EXP == 'Static':
@@ -1296,7 +1309,7 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
     #plt.show(block=True)
     if ALL_PLANES:
         plt.savefig(fname=pjoin(
-            root_dir, 'Figures', 'LateralPlane_' + EXP.upper() + '.eps'), bbox_inches='tight', dpi=300)
+            root_dir, 'Figures', 'LateralPlane_' + EXP.upper() + '.png'), bbox_inches='tight', dpi=300)
 
 def plotHemisphereMap(titles,
                       final_dict_names,
