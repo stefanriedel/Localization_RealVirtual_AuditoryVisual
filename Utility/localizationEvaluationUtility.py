@@ -932,13 +932,16 @@ def computeSlopeData(final_dict_names, local_azi_ele_data, EXP, DIM, root_dir):
                 allow_pickle=True)   
     return
 
-def testGroupedSlopeData(first_condition_data, second_condition_data, condition_pair, planes, PAIRED_SAMPLES=True):
+def testGroupedSlopeData(first_condition_data, second_condition_data, condition_pair, planes, PAIRED_SAMPLES=True, SUBJ_IDCS=[np.arange(16), np.arange(16)]):
     g_first = np.array([])
     g_second = np.array([])
 
     for plane, i in zip(planes, range(len(planes))):
         first_data = first_condition_data[condition_pair[0]][plane]
         second_data = second_condition_data[condition_pair[1]][plane]
+
+        first_data = first_data[SUBJ_IDCS[0]]
+        second_data = second_data[SUBJ_IDCS[1]]
 
         g_first = np.concatenate((g_first, first_data))
         g_second = np.concatenate((g_second, second_data))
@@ -955,14 +958,14 @@ def testGroupedSlopeData(first_condition_data, second_condition_data, condition_
         plt.boxplot([g_first, g_second])
         plt.show(block=True)
 
-    if PAIRED_SAMPLES:
-        res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
-    else:
-        res = stats.ttest_ind(g_first, g_second, alternative='two-sided')#alternative='greater')
+    #res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
+    res = stats.wilcoxon(g_first, g_second, alternative='two-sided')#alternative='greater')
+    
     cohens_d = (np.mean(g_first) - np.mean(g_second)) / (np.sqrt((np.std(g_first) ** 2 + np.std(g_second) ** 2) / 2))
 
     print('Conditions: ' + str(condition_pair), 
-          ' --> ' + str(np.mean(g_first)) + ' vs. ' + str(np.mean(g_second)),
+          #' --> ' + str(np.mean(g_first)) + ' vs. ' + str(np.mean(g_second)),
+          ' --> ' + str(np.median(g_first)) + ' vs. ' + str(np.median(g_second)),
           'pvalue: ' + str(res.pvalue), 
           'cohens_d:' + str(cohens_d))
     return  
@@ -1050,7 +1053,7 @@ def computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, DIM, ro
                 allow_pickle=True)
     return
 
-def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, condition_pair, directions):
+def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, condition_pair, directions, SUBJ_IDCS=[np.arange(16), np.arange(16)]):
     N_first = np.zeros(len(directions))
     N_second = np.zeros(len(directions))
     K_first = np.zeros(len(directions))
@@ -1061,14 +1064,14 @@ def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, c
         second_confusions = second_condition_data[condition_pair[1]]['Confusions'][dir]
 
         if condition_pair[0] == 'StaticOpenEars' or condition_pair[0] == 'DynamicOpenEars':
-            first_confusions_mean = first_confusions
+            first_confusions_mean = first_confusions[SUBJ_IDCS[0]]
         else:
-            first_confusions_mean = np.nanmean(np.array([first_confusions[:16], first_confusions[16:]]), axis=0)
+            first_confusions_mean = np.nanmean(np.array([first_confusions[SUBJ_IDCS[0]], first_confusions[SUBJ_IDCS[0]+16]]), axis=0)
 
         if condition_pair[1] == 'StaticOpenEars' or condition_pair[1] == 'DynamicOpenEars':
-            second_confusions_mean = second_confusions
+            second_confusions_mean = second_confusions[SUBJ_IDCS[1]]
         else:
-            second_confusions_mean = np.nanmean(np.array([second_confusions[:16], second_confusions[16:]]), axis=0)
+            second_confusions_mean = np.nanmean(np.array([second_confusions[SUBJ_IDCS[1]], second_confusions[SUBJ_IDCS[1]+16]]), axis=0)
 
         n_first = np.sum(~np.isnan(first_confusions_mean)) # Number of local data points
         k_first = np.nansum(first_confusions_mean) # Number of confusion in local data points

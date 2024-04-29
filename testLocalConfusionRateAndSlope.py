@@ -85,32 +85,40 @@ if ELEVATION:
 
 
 # TESTS: STATIC VS. DYNAMIC CONDITIONS
-condition_pairs = [['StaticKU100HRTF', 'DynamicKU100HRTF'], ['StaticIndivHRTF', 'DynamicKU100HRTF'], ['StaticOpenHeadphones', 'DynamicOpenHeadphones'], ['StaticOpenEars', 'DynamicOpenEars']]
+condition_pairs = [['StaticKU100HRTF', 'DynamicKU100HRTF'], [ 'StaticIndivHRTF', 'DynamicKU100HRTF'], ['StaticOpenHeadphones', 'DynamicOpenHeadphones'], ['StaticOpenEars', 'DynamicOpenEars']]
+
+# Compare only participants that took part in both experiments
+subjects_repeated_exp1 = np.array([1,2,3,8,9,13,12,15])
+subjects_repeated_exp2 = np.array([13,3,12,5,4,1,11,2])
+
+subject_idcs = [subjects_repeated_exp1, subjects_repeated_exp2]
+
 if AZIMUTH:
     # StaticVSDynamic LCR Azimuth Tests
     directions = [*range(20)] # All directions of the three height layers
     print('StaticVSDynamic Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRate(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions)
+        testGroupedLocalConfusionRate(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, SUBJ_IDCS=subject_idcs)
     print('')
 
     # StaticVSDynamic Slope Azimuth Tests
     planes = ['0DEG+30DEG+60DEG']
     print('StaticVSDynamic Azimuth Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_static_azi, slope_dynamic_azi, condition_pair, planes, PAIRED_SAMPLES=False)
+        testGroupedSlopeData(slope_static_azi, slope_dynamic_azi, condition_pair, planes, SUBJ_IDCS=subject_idcs)
     print('')
 if ELEVATION:
     # StaticVSDynamic LCR Elevation Tests
     directions = [*range(20)] + [*range(21, 25)] # All directions except the zenith
+    #directions = [0, 24, 23] # All directions except the zenith
     print('StaticVSDynamic Elevation LCR Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRate(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions)
+        testGroupedLocalConfusionRate(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, SUBJ_IDCS=subject_idcs)
     print('')
 
     # StaticVSDynamic Slope Elevation Tests
     planes = ['0DEG', '30DEG', '-30DEG', '90DEG', '-90DEG', '150DEG', '-150DEG', '180DEG']
     print('StaticVSDynamic Elevation Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_static_ele, slope_dynamic_ele, condition_pair, planes, PAIRED_SAMPLES=False)
+        testGroupedSlopeData(slope_static_ele, slope_dynamic_ele, condition_pair, planes, SUBJ_IDCS=subject_idcs)
     print('')
