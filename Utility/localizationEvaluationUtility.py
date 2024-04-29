@@ -932,13 +932,13 @@ def computeSlopeData(final_dict_names, local_azi_ele_data, EXP, DIM, root_dir):
                 allow_pickle=True)   
     return
 
-def testGroupedSlopeData(EXP, root_dir, slope_data, condition_pair, planes):
+def testGroupedSlopeData(first_condition_data, second_condition_data, condition_pair, planes, PAIRED_SAMPLES=True):
     g_first = np.array([])
     g_second = np.array([])
 
     for plane, i in zip(planes, range(len(planes))):
-        first_data = slope_data[condition_pair[0]][plane]
-        second_data = slope_data[condition_pair[1]][plane]
+        first_data = first_condition_data[condition_pair[0]][plane]
+        second_data = second_condition_data[condition_pair[1]][plane]
 
         g_first = np.concatenate((g_first, first_data))
         g_second = np.concatenate((g_second, second_data))
@@ -950,15 +950,21 @@ def testGroupedSlopeData(EXP, root_dir, slope_data, condition_pair, planes):
     g_first = g_first[non_nan_idcs]
     g_second = g_second[non_nan_idcs]
 
-    if 1:
+    if 0:
         plt.figure()
         plt.boxplot([g_first, g_second])
         plt.show(block=True)
 
-    res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
+    if PAIRED_SAMPLES:
+        res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
+    else:
+        res = stats.ttest_ind(g_first, g_second, alternative='two-sided')#alternative='greater')
     cohens_d = (np.mean(g_first) - np.mean(g_second)) / (np.sqrt((np.std(g_first) ** 2 + np.std(g_second) ** 2) / 2))
 
-    print('Directions: ' + str(planes), 'Conditions: ' + str(condition_pair), 'pvalue: ' + str(res.pvalue), 'cohens_d:' + str(cohens_d))
+    print('Conditions: ' + str(condition_pair), 
+          ' --> ' + str(np.mean(g_first)) + ' vs. ' + str(np.mean(g_second)),
+          'pvalue: ' + str(res.pvalue), 
+          'cohens_d:' + str(cohens_d))
     return  
 
 
@@ -1044,28 +1050,29 @@ def computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, DIM, ro
                 allow_pickle=True)
     return
 
-def testGroupedLocalConfusionRate(EXP, root_dir, confusion_rate_data, condition_pair, directions):
+def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, condition_pair, directions):
     N_first = np.zeros(len(directions))
     N_second = np.zeros(len(directions))
     K_first = np.zeros(len(directions))
     K_second = np.zeros(len(directions))
         
     for dir, i in zip(directions, range(len(directions))):
-        first_data = confusion_rate_data[condition_pair[0]]
-        first_confusions = first_data['Confusions'][dir]
-
-        second_data = confusion_rate_data[condition_pair[1]]
-        second_confusions = second_data['Confusions'][dir]
+        first_confusions = first_condition_data[condition_pair[0]]['Confusions'][dir]
+        second_confusions = second_condition_data[condition_pair[1]]['Confusions'][dir]
 
         if condition_pair[0] == 'StaticOpenEars' or condition_pair[0] == 'DynamicOpenEars':
             first_confusions_mean = first_confusions
         else:
             first_confusions_mean = np.nanmean(np.array([first_confusions[:16], first_confusions[16:]]), axis=0)
 
+        if condition_pair[1] == 'StaticOpenEars' or condition_pair[1] == 'DynamicOpenEars':
+            second_confusions_mean = second_confusions
+        else:
+            second_confusions_mean = np.nanmean(np.array([second_confusions[:16], second_confusions[16:]]), axis=0)
+
         n_first = np.sum(~np.isnan(first_confusions_mean)) # Number of local data points
         k_first = np.nansum(first_confusions_mean) # Number of confusion in local data points
 
-        second_confusions_mean = np.nanmean(np.array([second_confusions[:16], second_confusions[16:]]), axis=0)
         n_second = np.sum(~np.isnan(second_confusions_mean)) # Number of local data points
         k_second = np.nansum(second_confusions_mean) # Number of confusion in local data points
 
@@ -1076,10 +1083,16 @@ def testGroupedLocalConfusionRate(EXP, root_dir, confusion_rate_data, condition_
 
     k = int(np.round(np.sum(K_second)))
     n = int(np.round(np.sum(N_second)))
-    p = float(np.round(np.sum(K_first))) / np.sum(N_first)
 
-    res = stats.binomtest(k, n, p, alternative='greater')
-    print('Directions: ' + str(directions), 'Conditions: ' + str(condition_pair), 'pvalue: ' + str(res.pvalue))
+
+    p_first = float(np.round(np.sum(K_first))) / np.sum(N_first)
+    p_second = float(np.round(np.sum(K_second))) / np.sum(N_second)
+
+    res = stats.binomtest(k, n, p_first, alternative='two-sided')#alternative='greater')
+    print(#'Directions: ' + str(directions), 
+          'Conditions: ' + str(condition_pair), 
+          ' --> ' + str(round(p_first, 3) * 100) + '%' + ' vs. ' +  str(round(p_second, 3) * 100) +'%', 
+          'pvalue: ' + str(res.pvalue))
     return
     
 
