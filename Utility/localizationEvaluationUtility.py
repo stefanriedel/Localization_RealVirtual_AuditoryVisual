@@ -10,6 +10,8 @@ from scipy.spatial.distance import cdist, euclidean
 import warnings
 import scipy.stats as stats
 
+from Utility.wilcoxon import stats_wilcoxon
+
 from Utility.loudspeakerPositions import azi, ele
 
 
@@ -959,15 +961,18 @@ def testGroupedSlopeData(first_condition_data, second_condition_data, condition_
         plt.show(block=True)
 
     #res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
-    res = stats.wilcoxon(g_first, g_second, alternative='two-sided')#alternative='greater')
+    #res = stats.wilcoxon(g_first, g_second, alternative='two-sided')#alternative='greater')
+    res, T_plus, T_minus = stats_wilcoxon(g_first, g_second, alternative='two-sided')#alternative='greater')
     
     cohens_d = (np.mean(g_first) - np.mean(g_second)) / (np.sqrt((np.std(g_first) ** 2 + np.std(g_second) ** 2) / 2))
 
     print('Conditions: ' + str(condition_pair), 
           #' --> ' + str(np.mean(g_first)) + ' vs. ' + str(np.mean(g_second)),
           ' --> ' + str(np.median(g_first)) + ' vs. ' + str(np.median(g_second)),
-          'pvalue: ' + str(res.pvalue), 
-          'cohens_d:' + str(cohens_d))
+          'pvalue: ' + str(res[1]),
+          'T(' + str(g_first.size) + ') = ' + str(T_plus - T_minus))
+
+          #'cohens_d:' + str(cohens_d))
     return  
 
 
@@ -1053,15 +1058,18 @@ def computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, DIM, ro
                 allow_pickle=True)
     return
 
-def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, condition_pair, directions, SUBJ_IDCS=[np.arange(16), np.arange(16)]):
-    N_first = np.zeros(len(directions))
-    N_second = np.zeros(len(directions))
-    K_first = np.zeros(len(directions))
-    K_second = np.zeros(len(directions))
+def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, condition_pair, direction_pair, SUBJ_IDCS=[np.arange(16), np.arange(16)]):
+    # Only test over equal numbers of directions
+    assert(len(direction_pair[0]) == len(direction_pair[1]))
+
+    N_first = np.zeros(len(direction_pair[0]))
+    N_second = np.zeros(len(direction_pair[1]))
+    K_first = np.zeros(len(direction_pair[0]))
+    K_second = np.zeros(len(direction_pair[1]))
         
-    for dir, i in zip(directions, range(len(directions))):
-        first_confusions = first_condition_data[condition_pair[0]]['Confusions'][dir]
-        second_confusions = second_condition_data[condition_pair[1]]['Confusions'][dir]
+    for dir_first, dir_second, i in zip(direction_pair[0], direction_pair[1], range(len(direction_pair[0]))):
+        first_confusions = first_condition_data[condition_pair[0]]['Confusions'][dir_first]
+        second_confusions = second_condition_data[condition_pair[1]]['Confusions'][dir_second]
 
         if condition_pair[0] == 'StaticOpenEars' or condition_pair[0] == 'DynamicOpenEars':
             first_confusions_mean = first_confusions[SUBJ_IDCS[0]]
@@ -1087,7 +1095,6 @@ def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, c
     k = int(np.round(np.sum(K_second)))
     n = int(np.round(np.sum(N_second)))
 
-
     p_first = float(np.round(np.sum(K_first))) / np.sum(N_first)
     p_second = float(np.round(np.sum(K_second))) / np.sum(N_second)
 
@@ -1095,7 +1102,7 @@ def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, c
     print(#'Directions: ' + str(directions), 
           'Conditions: ' + str(condition_pair), 
           ' --> ' + str(round(p_first, 3) * 100) + '%' + ' vs. ' +  str(round(p_second, 3) * 100) +'%', 
-          'pvalue: ' + str(res.pvalue))
+          'pvalue: ' + str(res.pvalue), ' test-statistic: ' + str(k) + '/' + str(n))
     return
     
 

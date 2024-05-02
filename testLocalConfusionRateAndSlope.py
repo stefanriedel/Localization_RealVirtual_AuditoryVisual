@@ -25,6 +25,7 @@ condition_pairs = [['StaticIndivHRTF', 'StaticKU100HRTF'], ['StaticIndivHRTF', '
 if AZIMUTH:
     # Static LCR Azimuth Tests
     directions = [*range(20)] # All directions of the three height layers
+    directions = [directions, directions]
     print('Static Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
         testGroupedLocalConfusionRate(lcr_static_azi, lcr_static_azi, condition_pair, directions)
@@ -41,6 +42,7 @@ if ELEVATION:
     # Static LCR Elevation Tests
     print('Static Elevation LCR Test: ')
     directions = [*range(20)] + [*range(21, 25)] # All directions except the zenith
+    directions = [directions, directions]
     for condition_pair in condition_pairs:
         testGroupedLocalConfusionRate(lcr_static_ele, lcr_static_ele, condition_pair, directions)
     print('')
@@ -57,6 +59,7 @@ condition_pairs = [['DynamicKEMARHRTF', 'DynamicKU100HRTF'], ['DynamicKU100HRTF'
 if AZIMUTH:
     # Dynamic LCR Azimuth Tests
     directions = [*range(20)] # All directions of the three height layers
+    directions = [directions, directions]
     print('Dynamic Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
         testGroupedLocalConfusionRate(lcr_dynamic_azi, lcr_dynamic_azi, condition_pair, directions)
@@ -71,6 +74,7 @@ if AZIMUTH:
 if ELEVATION:
     # Dynamic LCR Elevation Tests
     directions = [*range(20)] + [*range(21, 25)] # All directions except the zenith
+    directions = [directions, directions]
     print('Dynamic Elevation LCR Tests: ')
     for condition_pair in condition_pairs:
         testGroupedLocalConfusionRate(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions)
@@ -84,7 +88,7 @@ if ELEVATION:
     print('')
 
 
-# TESTS: STATIC VS. DYNAMIC CONDITIONS
+# TESTS STATIC VS. DYNAMIC CONDITIONS
 condition_pairs = [['StaticKU100HRTF', 'DynamicKU100HRTF'], [ 'StaticIndivHRTF', 'DynamicKU100HRTF'], ['StaticOpenHeadphones', 'DynamicOpenHeadphones'], ['StaticOpenEars', 'DynamicOpenEars']]
 
 # Compare only participants that took part in both experiments
@@ -96,6 +100,7 @@ subject_idcs = [subjects_repeated_exp1, subjects_repeated_exp2]
 if AZIMUTH:
     # StaticVSDynamic LCR Azimuth Tests
     directions = [*range(20)] # All directions of the three height layers
+    directions = [directions, directions]
     print('StaticVSDynamic Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
         testGroupedLocalConfusionRate(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, SUBJ_IDCS=subject_idcs)
@@ -110,7 +115,7 @@ if AZIMUTH:
 if ELEVATION:
     # StaticVSDynamic LCR Elevation Tests
     directions = [*range(20)] + [*range(21, 25)] # All directions except the zenith
-    #directions = [0, 24, 23] # All directions except the zenith
+    directions = [directions, directions]
     print('StaticVSDynamic Elevation LCR Tests: ')
     for condition_pair in condition_pairs:
         testGroupedLocalConfusionRate(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, SUBJ_IDCS=subject_idcs)
@@ -122,3 +127,29 @@ if ELEVATION:
     for condition_pair in condition_pairs:
         testGroupedSlopeData(slope_static_ele, slope_dynamic_ele, condition_pair, planes, SUBJ_IDCS=subject_idcs)
     print('')
+
+# TESTS ON VISUAL ANCHOR DENSITY: STATIC
+condition_pairs = [['StaticKU100HRTF', 'StaticKU100HRTF'], [ 'StaticIndivHRTF', 'StaticIndivHRTF'], ['StaticOpenHeadphones', 'StaticOpenHeadphones'], ['StaticOpenEars', 'StaticOpenEars']]
+# Visual Anchor Density LCR Elevation Tests
+directions = [[1,9,2,10], [7,15,6,14]]
+#directions = [[1,9], [7,15]]
+
+print('Visual Anchor Density LCR Elevation Tests: ')
+for condition_pair in condition_pairs:
+    testGroupedLocalConfusionRate(lcr_static_ele, lcr_static_ele, condition_pair, directions)
+print('')
+
+# TESTS ON VISUAL ANCHOR DENSITY: DYNAMIC
+
+condition_pairs = [['DynamicKU100HRTF', 'DynamicKU100HRTF'], [ 'DynamicKEMARHRTF', 'DynamicKEMARHRTF'], ['DynamicOpenHeadphones', 'DynamicOpenHeadphones'], ['DynamicOpenEars', 'DynamicOpenEars']]
+# Visual Anchor Density LCR Elevation Tests
+directions = [[1,9,2,10], [7,15,6,14]]
+#directions = [[1,9], [7,15]]
+
+print('Visual Anchor Density LCR Elevation Tests: ')
+for condition_pair in condition_pairs:
+    testGroupedLocalConfusionRate(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions)
+print('')
+
+
+ 
