@@ -968,7 +968,7 @@ def testGroupedSlopeData(first_condition_data, second_condition_data, condition_
 
     print('Conditions: ' + str(condition_pair), 
           #' --> ' + str(np.mean(g_first)) + ' vs. ' + str(np.mean(g_second)),
-          ' --> ' + str(np.median(g_first)) + ' vs. ' + str(np.median(g_second)),
+          ' --> ' + str(np.round(np.median(g_first), 2)) + ' vs. ' + str(np.round(np.median(g_second), 2)),
           'pvalue: ' + str(res[1]),
           'T(' + str(g_first.size) + ') = ' + str(T_plus - T_minus))
 
@@ -1101,9 +1101,62 @@ def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, c
     res = stats.binomtest(k, n, p_first, alternative='two-sided')#alternative='greater')
     print(#'Directions: ' + str(directions), 
           'Conditions: ' + str(condition_pair), 
-          ' --> ' + str(round(p_first, 3) * 100) + '%' + ' vs. ' +  str(round(p_second, 3) * 100) +'%', 
+          ' --> ' + str(int(round(p_first, 2) * 100)) + '%' + ' vs. ' +  str(int(round(p_second, 2) * 100)) +'%', 
           'pvalue: ' + str(res.pvalue), ' test-statistic: ' + str(k) + '/' + str(n))
     return
+
+def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second_condition_data, condition_pair, direction_pair, SUBJ_IDCS=[np.arange(16), np.arange(16)], PAIRED_SAMPLES=True):
+    # Only test over equal numbers of directions
+    assert(len(direction_pair[0]) == len(direction_pair[1]))
+
+    confusion_rate_first = np.zeros(len(SUBJ_IDCS[0]))
+    confusion_rate_second = np.zeros(len(SUBJ_IDCS[0]))
+
+    for subj_first, subj_second, i in zip(SUBJ_IDCS[0], SUBJ_IDCS[1], range(len(SUBJ_IDCS[0]))):
+        if condition_pair[0] == 'StaticOpenEars' or condition_pair[0] == 'DynamicOpenEars':
+            first_confusions = np.asarray(first_condition_data[condition_pair[0]]['Confusions'])[direction_pair[0]][:, subj_first]
+        else:
+            first_confusions = np.asarray(first_condition_data[condition_pair[0]]['Confusions'])[direction_pair[0]][:, [subj_first, subj_first + 16]]
+            first_confusions = np.nanmean(first_confusions, axis=1)
+
+        if condition_pair[1] == 'StaticOpenEars' or condition_pair[1] == 'DynamicOpenEars':
+            second_confusions = np.asarray(second_condition_data[condition_pair[1]]['Confusions'])[direction_pair[1]][:, subj_second]
+        else:
+            second_confusions = np.asarray(second_condition_data[condition_pair[1]]['Confusions'])[direction_pair[1]][:, [subj_second, subj_second + 16]]
+            second_confusions = np.nanmean(second_confusions, axis=1)
+
+        n_first = np.sum(~np.isnan(first_confusions)) # Number of local data points
+        k_first = np.nansum(first_confusions) # Number of confusion in local data points
+        confusion_rate_first[i] = k_first / n_first
+
+        n_second = np.sum(~np.isnan(second_confusions)) # Number of local data points
+        k_second = np.nansum(second_confusions) # Number of confusion in local data points
+        confusion_rate_second[i] = k_second / n_second
+
+    
+    #if condition_pair[0] == 'StaticKU100HRTF' and condition_pair[1] == 'DynamicKU100HRTF':
+
+
+    if PAIRED_SAMPLES:
+        res, T_plus, T_minus = stats_wilcoxon(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+        print(#'Directions: ' + str(directions), 
+            'Conditions: ' + str(condition_pair), 
+            ' --> ' + str(int(round(np.median(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.median(confusion_rate_second), 2) * 100)) +'%', 
+            'pvalue: ' + str(res[1]), 'T(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(T_plus - T_minus))
+    else:
+        res = stats.mannwhitneyu(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+        print(#'Directions: ' + str(directions), 
+            'Conditions: ' + str(condition_pair), 
+            ' --> ' + str(int(round(np.median(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.median(confusion_rate_second), 2) * 100)) +'%', 
+            'pvalue: ' + str(res[1]), 'U1(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
+
+
+    if 0:#condition_pair[0] == 'StaticKU100HRTF' and condition_pair[1] == 'DynamicKU100HRTF':
+        plt.figure()
+        plt.boxplot([confusion_rate_first, confusion_rate_second])
+        plt.show(block=True)
+    return
+
     
 
 def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,

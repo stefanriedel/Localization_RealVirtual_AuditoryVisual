@@ -1,4 +1,4 @@
-from Utility.localizationEvaluationUtility import testGroupedLocalConfusionRate, testGroupedSlopeData
+from Utility.localizationEvaluationUtility import testGroupedLocalConfusionRate, testGroupedSlopeData, testGroupedLocalConfusionRateConstantSampleSize
 from os.path import dirname, join as pjoin
 import numpy as np
 
@@ -28,7 +28,8 @@ if AZIMUTH:
     directions = [directions, directions]
     print('Static Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRate(lcr_static_azi, lcr_static_azi, condition_pair, directions)
+        #testGroupedLocalConfusionRate(lcr_static_azi, lcr_static_azi, condition_pair, directions)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_static_azi, condition_pair, directions)
     print('')
 
     # Static Slope Azimuth Tests
@@ -44,7 +45,9 @@ if ELEVATION:
     directions = [*range(20)] + [*range(21, 25)] # All directions except the zenith
     directions = [directions, directions]
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRate(lcr_static_ele, lcr_static_ele, condition_pair, directions)
+        #testGroupedLocalConfusionRate(lcr_static_ele, lcr_static_ele, condition_pair, directions)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_static_ele, condition_pair, directions)
+
     print('')
 
     # Static Slope Elevation Tests
@@ -92,10 +95,10 @@ if ELEVATION:
 condition_pairs = [['StaticKU100HRTF', 'DynamicKU100HRTF'], [ 'StaticIndivHRTF', 'DynamicKU100HRTF'], ['StaticOpenHeadphones', 'DynamicOpenHeadphones'], ['StaticOpenEars', 'DynamicOpenEars']]
 
 # Compare only participants that took part in both experiments
-subjects_repeated_exp1 = np.array([1,2,3,8,9,13,12,15])
-subjects_repeated_exp2 = np.array([13,3,12,5,4,1,11,2])
+#subjects_repeated_exp1 = np.array([1,2,3,8,9,13,12,15])
+#subjects_repeated_exp2 = np.array([13,3,12,5,4,1,11,2])
 
-subject_idcs = [subjects_repeated_exp1, subjects_repeated_exp2]
+#subject_idcs = [subjects_repeated_exp1, subjects_repeated_exp2]
 
 if AZIMUTH:
     # StaticVSDynamic LCR Azimuth Tests
@@ -103,14 +106,15 @@ if AZIMUTH:
     directions = [directions, directions]
     print('StaticVSDynamic Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRate(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, SUBJ_IDCS=subject_idcs)
+        #testGroupedLocalConfusionRate(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, SUBJ_IDCS=subject_idcs)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, PAIRED_SAMPLES=False)
     print('')
 
     # StaticVSDynamic Slope Azimuth Tests
     planes = ['0DEG+30DEG+60DEG']
     print('StaticVSDynamic Azimuth Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_static_azi, slope_dynamic_azi, condition_pair, planes, SUBJ_IDCS=subject_idcs)
+        testGroupedSlopeData(slope_static_azi, slope_dynamic_azi, condition_pair, planes)
     print('')
 if ELEVATION:
     # StaticVSDynamic LCR Elevation Tests
@@ -118,14 +122,15 @@ if ELEVATION:
     directions = [directions, directions]
     print('StaticVSDynamic Elevation LCR Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRate(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, SUBJ_IDCS=subject_idcs)
+        #testGroupedLocalConfusionRate(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, SUBJ_IDCS=subject_idcs)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, PAIRED_SAMPLES=False)
     print('')
 
     # StaticVSDynamic Slope Elevation Tests
     planes = ['0DEG', '30DEG', '-30DEG', '90DEG', '-90DEG', '150DEG', '-150DEG', '180DEG']
     print('StaticVSDynamic Elevation Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_static_ele, slope_dynamic_ele, condition_pair, planes, SUBJ_IDCS=subject_idcs)
+        testGroupedSlopeData(slope_static_ele, slope_dynamic_ele, condition_pair, planes)
     print('')
 
 # TESTS ON VISUAL ANCHOR DENSITY: STATIC
