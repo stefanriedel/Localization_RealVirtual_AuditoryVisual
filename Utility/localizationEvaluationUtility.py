@@ -973,6 +973,65 @@ def testGroupedSlopeData(first_condition_data, second_condition_data, condition_
           'T(' + str(g_first.size) + ') = ' + str(T_plus - T_minus))
 
           #'cohens_d:' + str(cohens_d))
+    return
+
+def testGroupedSlopeDataConstantSampleSize(first_condition_data, second_condition_data, condition_pair, planes, SUBJ_IDCS=[np.arange(16), np.arange(16)], PAIRED_SAMPLES=True, NONPARAM=True):
+    g_first = np.zeros((len(SUBJ_IDCS[0]), len(planes)))
+    g_second = np.zeros((len(SUBJ_IDCS[1]), len(planes)))
+
+    for plane, i in zip(planes, range(len(planes))):
+        first_data = first_condition_data[condition_pair[0]][plane]
+        second_data = second_condition_data[condition_pair[1]][plane]
+
+        first_data = first_data[SUBJ_IDCS[0]]
+        second_data = second_data[SUBJ_IDCS[1]]
+
+        g_first[:, i] = first_data
+        g_second[:, i] = second_data
+
+    g_first = np.nanmean(g_first, axis=1)
+    g_second = np.nanmean(g_second, axis=1)
+
+    non_nan_idcs_first = ~np.isnan(g_first)
+    non_nan_idcs_second = ~np.isnan(g_second)
+    non_nan_idcs = np.logical_and(non_nan_idcs_first, non_nan_idcs_second)
+
+    g_first = g_first[non_nan_idcs]
+    g_second = g_second[non_nan_idcs]
+
+    if 0:
+        plt.figure()
+        plt.boxplot([g_first, g_second])
+        plt.show(block=True)
+
+
+
+    if PAIRED_SAMPLES:
+        if NONPARAM:
+            res, T_plus, T_minus = stats_wilcoxon(g_first, g_second, alternative='two-sided')#alternative='greater')
+            print('Conditions: ' + str(condition_pair), 
+                ' --> ' + str(np.round(np.median(g_first), 2)) + ' vs. ' + str(np.round(np.median(g_second), 2)),
+                'pvalue: ' + str(res[1]),
+                'T(' + str(g_first.size) + ') = ' + str(T_plus - T_minus))
+        else:
+            res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
+            print('Conditions: ' + str(condition_pair), 
+                ' --> ' + str(np.round(np.mean(g_first), 2)) + ' vs. ' + str(np.round(np.mean(g_second), 2)),
+                'pvalue: ' + str(res[1]),
+                't(' + str(g_first.size) + ') = ' + str(res[0]))
+    else:
+        if NONPARAM:
+            res = stats.mannwhitneyu(g_first, g_second, alternative='two-sided')#alternative='greater')
+            print(#'Directions: ' + str(directions), 
+                'Conditions: ' + str(condition_pair), 
+                ' --> ' + str(np.round(np.median(g_first), 2)) + ' vs. ' + str(np.round(np.median(g_second), 2)),
+                'pvalue: ' + str(res[1]), 'U1(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
+        else:
+            res = stats.ttest_ind(g_first, g_second, alternative='two-sided')#alternative='greater')
+            print('Conditions: ' + str(condition_pair), 
+                ' --> ' + str(np.round(np.mean(g_first), 2)) + ' vs. ' + str(np.round(np.mean(g_second), 2)),
+                'pvalue: ' + str(res[1]),
+                't(' + str(g_first.size) + ') = ' + str(res[0]))
     return  
 
 
@@ -1105,7 +1164,7 @@ def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, c
           'pvalue: ' + str(res.pvalue), ' test-statistic: ' + str(k) + '/' + str(n))
     return
 
-def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second_condition_data, condition_pair, direction_pair, SUBJ_IDCS=[np.arange(16), np.arange(16)], PAIRED_SAMPLES=True):
+def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second_condition_data, condition_pair, direction_pair, SUBJ_IDCS=[np.arange(16), np.arange(16)], PAIRED_SAMPLES=True, NONPARAM=True):
     # Only test over equal numbers of directions
     assert(len(direction_pair[0]) == len(direction_pair[1]))
 
@@ -1114,15 +1173,15 @@ def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second
 
     for subj_first, subj_second, i in zip(SUBJ_IDCS[0], SUBJ_IDCS[1], range(len(SUBJ_IDCS[0]))):
         if condition_pair[0] == 'StaticOpenEars' or condition_pair[0] == 'DynamicOpenEars':
-            first_confusions = np.asarray(first_condition_data[condition_pair[0]]['Confusions'])[direction_pair[0]][:, subj_first]
+            first_confusions = np.asarray(first_condition_data[condition_pair[0]]['Confusions'])[direction_pair[0],:][:, subj_first]
         else:
-            first_confusions = np.asarray(first_condition_data[condition_pair[0]]['Confusions'])[direction_pair[0]][:, [subj_first, subj_first + 16]]
+            first_confusions = np.asarray(first_condition_data[condition_pair[0]]['Confusions'])[direction_pair[0],:][:, [subj_first, subj_first + 16]]
             first_confusions = np.nanmean(first_confusions, axis=1)
 
         if condition_pair[1] == 'StaticOpenEars' or condition_pair[1] == 'DynamicOpenEars':
-            second_confusions = np.asarray(second_condition_data[condition_pair[1]]['Confusions'])[direction_pair[1]][:, subj_second]
+            second_confusions = np.asarray(second_condition_data[condition_pair[1]]['Confusions'])[direction_pair[1],:][:, subj_second]
         else:
-            second_confusions = np.asarray(second_condition_data[condition_pair[1]]['Confusions'])[direction_pair[1]][:, [subj_second, subj_second + 16]]
+            second_confusions = np.asarray(second_condition_data[condition_pair[1]]['Confusions'])[direction_pair[1],:][:, [subj_second, subj_second + 16]]
             second_confusions = np.nanmean(second_confusions, axis=1)
 
         n_first = np.sum(~np.isnan(first_confusions)) # Number of local data points
@@ -1133,22 +1192,32 @@ def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second
         k_second = np.nansum(second_confusions) # Number of confusion in local data points
         confusion_rate_second[i] = k_second / n_second
 
-    
-    #if condition_pair[0] == 'StaticKU100HRTF' and condition_pair[1] == 'DynamicKU100HRTF':
-
-
     if PAIRED_SAMPLES:
-        res, T_plus, T_minus = stats_wilcoxon(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
-        print(#'Directions: ' + str(directions), 
-            'Conditions: ' + str(condition_pair), 
-            ' --> ' + str(int(round(np.median(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.median(confusion_rate_second), 2) * 100)) +'%', 
-            'pvalue: ' + str(res[1]), 'T(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(T_plus - T_minus))
+        if NONPARAM:
+            res, T_plus, T_minus = stats_wilcoxon(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+            print(#'Directions: ' + str(directions), 
+                'Conditions: ' + str(condition_pair), 
+                ' --> ' + str(int(round(np.mean(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.mean(confusion_rate_second), 2) * 100)) +'%', 
+                'pvalue: ' + str(res[1]), 'T(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(T_plus - T_minus))
+        else:
+            res = stats.ttest_rel(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+            print(#'Directions: ' + str(directions), 
+                'Conditions: ' + str(condition_pair), 
+                ' --> ' + str(int(round(np.mean(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.mean(confusion_rate_second), 2) * 100)) +'%', 
+                'pvalue: ' + str(res[1]), 't(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
     else:
-        res = stats.mannwhitneyu(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
-        print(#'Directions: ' + str(directions), 
-            'Conditions: ' + str(condition_pair), 
-            ' --> ' + str(int(round(np.median(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.median(confusion_rate_second), 2) * 100)) +'%', 
-            'pvalue: ' + str(res[1]), 'U1(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
+        if NONPARAM:
+            res = stats.mannwhitneyu(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+            print(#'Directions: ' + str(directions), 
+                'Conditions: ' + str(condition_pair), 
+                ' --> ' + str(int(round(np.mean(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.mean(confusion_rate_second), 2) * 100)) +'%', 
+                'pvalue: ' + str(res[1]), 'U1(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
+        else:
+            res = stats.ttest_ind(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+            print(#'Directions: ' + str(directions), 
+                'Conditions: ' + str(condition_pair), 
+                ' --> ' + str(int(round(np.mean(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.mean(confusion_rate_second), 2) * 100)) +'%', 
+                'pvalue: ' + str(res[1]), 't(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
 
 
     if 0:#condition_pair[0] == 'StaticKU100HRTF' and condition_pair[1] == 'DynamicKU100HRTF':

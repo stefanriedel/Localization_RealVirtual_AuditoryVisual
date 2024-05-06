@@ -18,7 +18,7 @@ ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
 RENDER_VERTICAL_PLANES = False
 
-DO_STATISTICAL_TESTS = True
+COMPUTE_DATA_FOR_TESTS = True
 
 RENDER_HEMI_MAP = False
 RENDER_TIME_DATA_PLOT = False
@@ -332,21 +332,13 @@ if RENDER_VERTICAL_PLANES:
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele, RENDER_WITH_JASA_NAMES)
     
-if DO_STATISTICAL_TESTS:
+if COMPUTE_DATA_FOR_TESTS:
     EXP = 'Dynamic'
     computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Elevation', root_dir)
     computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Azimuth', root_dir)
 
-    # Do tests on slope g and local confusion rates LCR
-    #condition_pair = ['StaticIndivHRTF', 'StaticKU100HRTF']
-    condition_pair = ['DynamicOpenEars', 'DynamicKEMARHRTF']
-
-    directions = range(8,16)
-    confusion_rate_data = np.load(file=pjoin(root_dir,
-                'ErrorMetricData', 'LocalConfusionDataAzimuth' + EXP + '.npy'), allow_pickle=True)
-    confusion_rate_data = confusion_rate_data.tolist()
-    print('Azimuth LCR Test:')
-    testGroupedLocalConfusionRate(EXP, root_dir, confusion_rate_data, condition_pair, directions)
+    computeSlopeData(final_dict_names, local_azi_ele_data, EXP, 'Elevation', root_dir)
+    computeSlopeData(final_dict_names, local_azi_ele_data, EXP, 'Azimuth', root_dir)
 
 # Reassure normalized mean response vectors and convert to azi ele for hemi maps
 for dict_name in final_dict_names:

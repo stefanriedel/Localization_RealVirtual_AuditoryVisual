@@ -1,10 +1,12 @@
-from Utility.localizationEvaluationUtility import testGroupedLocalConfusionRate, testGroupedSlopeData, testGroupedLocalConfusionRateConstantSampleSize
+from Utility.localizationEvaluationUtility import testGroupedLocalConfusionRate, testGroupedSlopeData, testGroupedLocalConfusionRateConstantSampleSize, testGroupedSlopeDataConstantSampleSize
 from os.path import dirname, join as pjoin
 import numpy as np
 
 # SET DIMENSION YOU WANT TO TEST
 AZIMUTH = False
 ELEVATION = not AZIMUTH
+
+NONPARAM = True
 
 root_dir = dirname(__file__)
 data_dir = pjoin(root_dir, 'ErrorMetricData')
@@ -29,14 +31,15 @@ if AZIMUTH:
     print('Static Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
         #testGroupedLocalConfusionRate(lcr_static_azi, lcr_static_azi, condition_pair, directions)
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_static_azi, condition_pair, directions)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_static_azi, condition_pair, directions, NONPARAM=NONPARAM)
     print('')
 
     # Static Slope Azimuth Tests
-    planes = ['0DEG+30DEG+60DEG']
+    #planes = ['0DEG+30DEG+60DEG']
+    planes = ['0DEG', '30DEG', '60DEG']
     print('Static Azimuth Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_static_azi, slope_static_azi, condition_pair, planes)
+        testGroupedSlopeDataConstantSampleSize(slope_static_azi, slope_static_azi, condition_pair, planes, NONPARAM=NONPARAM)
     print('')
 
 if ELEVATION:
@@ -46,7 +49,7 @@ if ELEVATION:
     directions = [directions, directions]
     for condition_pair in condition_pairs:
         #testGroupedLocalConfusionRate(lcr_static_ele, lcr_static_ele, condition_pair, directions)
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_static_ele, condition_pair, directions)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_static_ele, condition_pair, directions, NONPARAM=NONPARAM)
 
     print('')
 
@@ -54,7 +57,7 @@ if ELEVATION:
     planes = ['0DEG', '30DEG', '-30DEG', '90DEG', '-90DEG', '150DEG', '-150DEG', '180DEG']
     print('Static Elevation Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_static_ele, slope_static_ele, condition_pair, planes)
+        testGroupedSlopeDataConstantSampleSize(slope_static_ele, slope_static_ele, condition_pair, planes, NONPARAM=NONPARAM)
     print('')
 
 # TESTS WITHIN DYNAMIC CONDITIONS
@@ -65,14 +68,15 @@ if AZIMUTH:
     directions = [directions, directions]
     print('Dynamic Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRate(lcr_dynamic_azi, lcr_dynamic_azi, condition_pair, directions)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_azi, lcr_dynamic_azi, condition_pair, directions, NONPARAM=NONPARAM)
     print('')
 
     # Dynamic Slope Azimuth Tests
-    planes = ['0DEG+30DEG+60DEG']
+    #planes = ['0DEG+30DEG+60DEG']
+    planes = ['0DEG', '30DEG', '60DEG']
     print('Dynamic Azimuth Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_dynamic_azi, slope_dynamic_azi, condition_pair, planes)
+        testGroupedSlopeDataConstantSampleSize(slope_dynamic_azi, slope_dynamic_azi, condition_pair, planes, NONPARAM=NONPARAM)
     print('')
 if ELEVATION:
     # Dynamic LCR Elevation Tests
@@ -80,14 +84,14 @@ if ELEVATION:
     directions = [directions, directions]
     print('Dynamic Elevation LCR Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRate(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions, NONPARAM=NONPARAM)
     print('')
 
     # Dynamic Slope Elevation Tests
     planes = ['0DEG', '30DEG', '-30DEG', '90DEG', '-90DEG', '150DEG', '-150DEG', '180DEG']
     print('Dynamic Elevation Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_dynamic_ele, slope_dynamic_ele, condition_pair, planes)
+        testGroupedSlopeDataConstantSampleSize(slope_dynamic_ele, slope_dynamic_ele, condition_pair, planes, NONPARAM=NONPARAM)
     print('')
 
 
@@ -107,14 +111,15 @@ if AZIMUTH:
     print('StaticVSDynamic Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
         #testGroupedLocalConfusionRate(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, SUBJ_IDCS=subject_idcs)
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, PAIRED_SAMPLES=False)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, PAIRED_SAMPLES=False, NONPARAM=NONPARAM)
     print('')
 
     # StaticVSDynamic Slope Azimuth Tests
-    planes = ['0DEG+30DEG+60DEG']
+    #planes = ['0DEG+30DEG+60DEG']
+    planes = ['0DEG', '30DEG', '60DEG']
     print('StaticVSDynamic Azimuth Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_static_azi, slope_dynamic_azi, condition_pair, planes)
+        testGroupedSlopeDataConstantSampleSize(slope_static_azi, slope_dynamic_azi, condition_pair, planes, PAIRED_SAMPLES=False, NONPARAM=NONPARAM)
     print('')
 if ELEVATION:
     # StaticVSDynamic LCR Elevation Tests
@@ -123,14 +128,14 @@ if ELEVATION:
     print('StaticVSDynamic Elevation LCR Tests: ')
     for condition_pair in condition_pairs:
         #testGroupedLocalConfusionRate(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, SUBJ_IDCS=subject_idcs)
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, PAIRED_SAMPLES=False)
+        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, PAIRED_SAMPLES=False, NONPARAM=NONPARAM)
     print('')
 
     # StaticVSDynamic Slope Elevation Tests
     planes = ['0DEG', '30DEG', '-30DEG', '90DEG', '-90DEG', '150DEG', '-150DEG', '180DEG']
     print('StaticVSDynamic Elevation Slope Tests: ')
     for condition_pair in condition_pairs:
-        testGroupedSlopeData(slope_static_ele, slope_dynamic_ele, condition_pair, planes)
+        testGroupedSlopeDataConstantSampleSize(slope_static_ele, slope_dynamic_ele, condition_pair, planes, PAIRED_SAMPLES=False, NONPARAM=NONPARAM)
     print('')
 
 # TESTS ON VISUAL ANCHOR DENSITY: STATIC
@@ -141,7 +146,7 @@ directions = [[1,9,2,10], [7,15,6,14]]
 
 print('Visual Anchor Density LCR Elevation Tests: ')
 for condition_pair in condition_pairs:
-    testGroupedLocalConfusionRate(lcr_static_ele, lcr_static_ele, condition_pair, directions)
+    testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_static_ele, condition_pair, directions, NONPARAM=NONPARAM)
 print('')
 
 # TESTS ON VISUAL ANCHOR DENSITY: DYNAMIC
@@ -153,7 +158,7 @@ directions = [[1,9,2,10], [7,15,6,14]]
 
 print('Visual Anchor Density LCR Elevation Tests: ')
 for condition_pair in condition_pairs:
-    testGroupedLocalConfusionRate(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions)
+    testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions, NONPARAM=NONPARAM)
 print('')
 
 

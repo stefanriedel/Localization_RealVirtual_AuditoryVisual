@@ -18,7 +18,7 @@ ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
 RENDER_VERTICAL_PLANES = False
 
-DO_STATISTICAL_TESTS = True
+COMPUTE_DATA_FOR_TESTS = False
 
 RENDER_HEMI_MAP = False
 RENDER_TIME_DATA_PLOT = False
@@ -327,23 +327,13 @@ if RENDER_VERTICAL_PLANES:
                        local_azi_ele_data, coord_x, coord_y, all_colors, EXP,
                        root_dir, plot_avg_ele, RENDER_WITH_JASA_NAMES)
     
-if DO_STATISTICAL_TESTS:
+if COMPUTE_DATA_FOR_TESTS:
     EXP = 'Static'
-    #computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Elevation', root_dir)
-    #computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Azimuth', root_dir)
+    computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Elevation', root_dir)
+    computeLocalConfusionData(final_dict_names, local_azi_ele_data, EXP, 'Azimuth', root_dir)
 
-    # Do tests on slope g and local confusion rates LCR
-    condition_pair = ['StaticIndivHRTF', 'StaticKU100HRTF']
-    #condition_pair = ['StaticOpenEars', 'StaticOpenHeadphones']
-
-    directions = [7,22,15]
-    #directions = [6,21,14]
-
-    confusion_rate_data = np.load(file=pjoin(root_dir,
-                'ErrorMetricData', 'LocalConfusionDataElevation' + EXP + '.npy'), allow_pickle=True)
-    confusion_rate_data = confusion_rate_data.tolist()
-    print('Elevation LCR Test:')
-    testGroupedLocalConfusionRate(EXP, root_dir, confusion_rate_data, condition_pair, directions)
+    computeSlopeData(final_dict_names, local_azi_ele_data, EXP, 'Elevation', root_dir)
+    computeSlopeData(final_dict_names, local_azi_ele_data, EXP, 'Azimuth', root_dir)   
 
 
 # Reassure normalized mean response vectors and convert to azi ele for hemi maps
@@ -370,7 +360,7 @@ if RENDER_HEMI_MAP:
     plots = ['Localization']#, 'QERate', 'ResponseTime']
     main_titles = [True, False, True]
     sub_titles = [True, False, True]
-    plot_idcs = np.array([17, 19])#np.array([17, 19])#np.arange(NUM_CHANNELS)
+    plot_idcs = np.array([11, 17, 19])#np.array([17, 19])#np.arange(NUM_CHANNELS)
     for plot, main_title, sub_title, in zip(plots, main_titles, sub_titles):
         plotHemisphereMap(titles,
                           final_dict_names,
