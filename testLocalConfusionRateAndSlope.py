@@ -23,7 +23,7 @@ slope_dynamic_ele = np.load(file=pjoin(data_dir, 'SlopeDataElevationDynamic.npy'
 slope_dynamic_azi = np.load(file=pjoin(data_dir, 'SlopeDataAzimuthDynamic.npy'), allow_pickle=True).tolist()
 
 # TESTS WITHIN STATIC CONDITIONS
-condition_pairs = [['StaticIndivHRTF', 'StaticKU100HRTF'], ['StaticIndivHRTF', 'StaticOpenHeadphones'], ['StaticOpenEars', 'StaticIndivHRTF'], ['StaticOpenEars', 'StaticOpenHeadphones']]
+condition_pairs = [['StaticKU100HRTF', 'StaticIndivHRTF'], ['StaticIndivHRTF', 'StaticOpenHeadphones'], ['StaticOpenEars', 'StaticIndivHRTF'], ['StaticOpenEars', 'StaticOpenHeadphones']]
 if AZIMUTH:
     # Static LCR Azimuth Tests
     directions = [*range(20)] # All directions of the three height layers
