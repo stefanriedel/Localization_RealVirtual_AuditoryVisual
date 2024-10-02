@@ -18,6 +18,8 @@ lcr_dynamic_azi = np.load(file=pjoin(data_dir, 'LocalConfusionDataAzimuthDynamic
 slope_dynamic_ele = np.load(file=pjoin(data_dir, 'SlopeDataElevationDynamic.npy'), allow_pickle=True).tolist()
 slope_dynamic_azi = np.load(file=pjoin(data_dir, 'SlopeDataAzimuthDynamic.npy'), allow_pickle=True).tolist()
 
+
+
 class median_iqr:
     def __init__(self):
         self.low = 0
@@ -105,48 +107,151 @@ def plotLocalConfusionRatesConstantSampleSizeDensity(lcr_data, conditions, densi
     
     return
 
-frontal_directions = [23, 0, 24]
-#directions = frontal_directions#[*range(20)] + [*range(21, 25)]
 
 conditions = ['StaticOpenEars', 'StaticOpenHeadphones', 'StaticIndivHRTF', 'StaticKU100HRTF']
-#conditions = ['StaticKU100HRTF']
-xlabel = ['Ref.', 'OH', 'Indiv. ' , ' KU100']
+xlabel = ['Op.Ear ', ' Op.Hp.', 'Indiv.' , 'KU100']
 
 
-# STATIC
+# STATIC HORIZONTAL: GLOBAL
 directions = [*range(20)] 
 ylabel = 'Horizontal LCR (%)' 
 savename = 'StaticHorizontalLCR.eps'
 
 confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_azi, conditions, directions)
+
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
-sns.violinplot(confusion_rates.T * 100.0)
+ax = sns.violinplot(confusion_rates.T * 100.0, cut=0, palette=['skyblue', 'skyblue', 'skyblue', 'skyblue'], inner_kws=dict(whis_width=2, color="black")) 
+#plt.setp(ax.collections, alpha=.1)
 plt.xticks([0,1,2,3], xlabel)
+
+off = 0.075
+plt.plot([0+off,0+off,1-off,1-off], [48,50,50,48], color='k')
+plt.text(x=0.5-0.075*2.5, y=51, s='***')
+
+plt.plot([1+off,1+off,2-off,2-off], [48,50,50,48], color='k')
+plt.text(x=1.5-0.075*2, y=51, s='**')
+
+plt.plot([2+off,2+off,3-off,3-off], [48,50,50,48], color='k')
+plt.text(x=2.5-0.075*2, y=51, s='ns')
+
+plt.plot([1+off*2,1+off*2,3-off*2,3-off*2], [38,40,40,38], color='k')
+plt.text(x=2-0.075*2, y=41, s='ns')
+
+
 plt.ylabel(ylabel)
 plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
+plt.title('')
 plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
 plt.show(block=True)
 
-#directions = [24, 0, 23, 8] + [1, 9] + [7, 22, 15] + [2, 10, 17] + [6, 21, 14, 19]
+
+# STATIC VERTICAL: GLOBAL
 directions = [*range(20)] + [*range(21, 25)]
-xlabel = ['REF', 'OH', 'Indiv. ' , ' KU100']
 ylabel = 'Vertical LCR (%)' 
 savename = 'StaticVerticalLCR.eps'
 
 confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_ele, conditions, directions)
+
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
-sns.violinplot(confusion_rates.T * 100.0)
+sns.violinplot(confusion_rates.T * 100.0, cut=0, palette=['skyblue', 'skyblue', 'skyblue', 'skyblue'], inner_kws=dict(whis_width=2, color="black"))
 plt.xticks([0,1,2,3], xlabel)
+
+off = 0.075
+plt.plot([0+off,0+off,1-off,1-off], [88,90,90,88], color='k')
+plt.text(x=0.5-0.075*2.5, y=90, s='***')
+
+plt.plot([1+off,1+off,2-off,2-off], [88,90,90,88], color='k')
+plt.text(x=1.5-0.075*2, y=91, s='ns')
+
+plt.plot([2+off,2+off,3-off,3-off], [88,90,90,88], color='k')
+plt.text(x=2.5-0.075*2, y=90, s='**')
+
+plt.plot([1+off*2,1+off*2,3-off*2,3-off*2], [78,80,80,78], color='k')
+plt.text(x=2-0.075, y=80, s='*')
+
 plt.ylabel(ylabel)
 plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
+plt.title('')
 plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
 plt.show(block=True)
+
+
+# STATIC VERTICAL: FRONTAL
+directions = [24, 0, 23]#[24, 0, 23, 1, 7]
+ylabel = 'Vertical LCR (%)' 
+savename = 'StaticVerticalLCRFrontal.eps'
+
+confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_ele, conditions, directions)
+
+plt.figure(figsize=(3,3))
+plt.grid(axis='y')
+sns.violinplot(confusion_rates.T * 100.0, cut=0)
+plt.xticks([0,1,2,3], xlabel)
+
+plt.ylabel(ylabel)
+plt.ylim([0,100.0])
+plt.yticks(ticks=np.arange(0, 110, 10))
+plt.tight_layout()
+plt.title('Frontal')
+plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
+plt.show(block=True)
+
+
+# STATIC VERTICAL: Lateral
+directions = [6,21,14]#[2, 10, 6, 14, 21]
+ylabel = 'Vertical LCR (%)' 
+savename = 'StaticVerticalLCRLateral.eps'
+
+confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_ele, conditions, directions)
+
+plt.figure(figsize=(3,3))
+plt.grid(axis='y')
+sns.violinplot(confusion_rates.T * 100.0, cut=0)
+plt.xticks([0,1,2,3], xlabel)
+
+plt.ylabel(ylabel)
+plt.ylim([0,100.0])
+plt.yticks(ticks=np.arange(0, 110, 10))
+plt.tight_layout()
+plt.title('Lateral')
+plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
+plt.show(block=True)
+
+
+# STATIC VERTICAL: Rear
+directions = [5,13,4,12,3,11]
+ylabel = 'Vertical LCR (%)' 
+savename = 'StaticVerticalLCRRear.eps'
+
+confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_ele, conditions, directions)
+
+plt.figure(figsize=(3,3))
+plt.grid(axis='y')
+sns.violinplot(confusion_rates.T * 100.0, cut=0)
+plt.xticks([0,1,2,3], xlabel)
+
+plt.ylabel(ylabel)
+plt.ylim([0,100.0])
+plt.yticks(ticks=np.arange(0, 110, 10))
+plt.tight_layout()
+plt.title('Rear')
+plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
+plt.show(block=True)
+
+
+
+
+
+
+
+
+
 
 # if 0:
 #     # Frontal
