@@ -18,6 +18,10 @@ lcr_dynamic_azi = np.load(file=pjoin(data_dir, 'LocalConfusionDataAzimuthDynamic
 slope_dynamic_ele = np.load(file=pjoin(data_dir, 'SlopeDataElevationDynamic.npy'), allow_pickle=True).tolist()
 slope_dynamic_azi = np.load(file=pjoin(data_dir, 'SlopeDataAzimuthDynamic.npy'), allow_pickle=True).tolist()
 
+#bias_static_ele = np.load(file=pjoin(data_dir, 'Static_Frontal_ElevationBias.npy'), allow_pickle=True).tolist()
+
+
+
 
 
 class median_iqr:
@@ -102,6 +106,10 @@ def plotLocalConfusionRatesConstantSampleSizeDensity(lcr_data, conditions, densi
     plt.yticks(ticks=np.arange(0, 110, 10))
     plt.legend(framealpha=1.0)
     plt.tight_layout()
+
+    plt.text(x=-0.1 + 1, y=-17,s='--Real--')
+    plt.text(x=1.9 + 1, y=-17,s='--Virtual--')
+
     plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
     plt.show(block=True)
     
@@ -121,7 +129,7 @@ confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_azi, conditions
 
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
-ax = sns.violinplot(confusion_rates.T * 100.0, cut=0, palette=['skyblue', 'skyblue', 'skyblue', 'skyblue'], inner_kws=dict(whis_width=2, color="black")) 
+ax = sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'skyblue', 'skyblue', 'skyblue'], inner_kws=dict(whis_width=2, color="black")) 
 #plt.setp(ax.collections, alpha=.1)
 plt.xticks([0,1,2,3], xlabel)
 
@@ -144,6 +152,10 @@ plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
 plt.title('')
+
+plt.text(x=-0.1,y=-17,s='--Real--')
+plt.text(x=1.9,y=-17,s='--Virtual--')
+
 plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
 plt.show(block=True)
 
@@ -157,7 +169,7 @@ confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_ele, conditions
 
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
-sns.violinplot(confusion_rates.T * 100.0, cut=0, palette=['skyblue', 'skyblue', 'skyblue', 'skyblue'], inner_kws=dict(whis_width=2, color="black"))
+sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'skyblue', 'skyblue', 'skyblue'], inner_kws=dict(whis_width=2, color="black"))
 plt.xticks([0,1,2,3], xlabel)
 
 off = 0.075
@@ -178,6 +190,10 @@ plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
 plt.title('')
+
+plt.text(x=-0.1,y=-17,s='--Real--')
+plt.text(x=1.9,y=-17,s='--Virtual--')
+
 plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
 plt.show(block=True)
 
