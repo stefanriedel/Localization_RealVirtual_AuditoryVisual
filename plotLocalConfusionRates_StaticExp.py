@@ -52,22 +52,36 @@ confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_azi, conditions
 
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
-ax = sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'skyblue', 'skyblue', 'skyblue'], inner_kws=dict(whis_width=2, color="black")) 
+ax = sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'lightgreen', 'lightcoral'], inner_kws=dict(whis_width=2, color="black")) 
 #plt.setp(ax.collections, alpha=.1)
 plt.xticks([0,1,2,3], xlabel)
 
 off = 0.075
-plt.plot([0+off,0+off,1-off,1-off], [48,50,50,48], color='k')
-plt.text(x=0.5-0.075*2.5, y=51, s='***')
+if 0:
+    # OpEar vs. OpHp
+    plt.plot([0+off,0+off,1-off,1-off], [38,40,40,38], color='k')
+    plt.text(x=0.5-0.075*3, y=40, s='***')
 
-plt.plot([1+off,1+off,2-off,2-off], [48,50,50,48], color='k')
-plt.text(x=1.5-0.075*2, y=51, s='**')
+    # OpHp vs. Indiv.
+    #plt.plot([1+off,1+off,2-off,2-off], [48,50,50,48], color='k')
+    #plt.text(x=1.5-0.075*2, y=51, s='**')
 
-plt.plot([2+off,2+off,3-off,3-off], [48,50,50,48], color='k')
-plt.text(x=2.5-0.075*2, y=51, s='ns')
+    # Indiv. vs. KU100
+    plt.plot([2+off,2+off,3-off,3-off], [38,40,40,38], color='k')
+    plt.text(x=2.5-0.075*2, y=41, s='ns')
 
-plt.plot([1+off*2,1+off*2,3-off*2,3-off*2], [38,40,40,38], color='k')
-plt.text(x=2-0.075*2, y=41, s='ns')
+    # OpHp vs. KU100
+    #plt.plot([1+off*2,1+off*2,3-off*2,3-off*2], [38,40,40,38], color='k')
+    #plt.text(x=2-0.075*2, y=41, s='ns')
+
+# Alternative: Connect all pariwise significant tests (p < 0.05) after Bonferroni correction
+if 1:
+    o = -6
+    # OpEar vs. Rest
+    plt.plot([0+off, 1-off], [84+o,84+o], color='k')
+    plt.plot([0+off, 3-off], [86+o,86+o], color='k')
+    # OpHp vs. Indiv. 
+    plt.plot([1+off,2-off], [82+o,82+o], color='k')
 
 
 plt.ylabel(ylabel, fontsize=ylabel_textsize)
@@ -92,21 +106,39 @@ confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_ele, conditions
 
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
-sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'skyblue', 'skyblue', 'skyblue'], inner_kws=dict(whis_width=2, color="black"))
+sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'lightgreen', 'lightcoral'], inner_kws=dict(whis_width=2, color="black"))
 plt.xticks([0,1,2,3], xlabel)
 
 off = 0.075
-plt.plot([0+off,0+off,1-off,1-off], [88,90,90,88], color='k')
-plt.text(x=0.5-0.075*2.5, y=90, s='***')
+if 0:
+    # OpEar vs. OpHp
+    plt.plot([0+off,0+off,1-off,1-off], [88,90,90,88], color='k')
+    plt.text(x=0.5-0.075*3, y=90, s='***')
 
-plt.plot([1+off,1+off,2-off,2-off], [88,90,90,88], color='k')
-plt.text(x=1.5-0.075*2, y=91, s='ns')
+    # OpHp vs. Indiv.
+    plt.plot([1+off,1+off,2-off,2-off], [88,90,90,88], color='k')
+    plt.text(x=1.5-0.075*2, y=91, s='ns')
 
-plt.plot([2+off,2+off,3-off,3-off], [88,90,90,88], color='k')
-plt.text(x=2.5-0.075*2, y=90, s='**')
+    # Indiv. vs. KU100
+    plt.plot([2+off,2+off,3-off,3-off], [88,90,90,88], color='k')
+    plt.text(x=2.5-0.075*2, y=90, s='**')
 
-plt.plot([1+off*2,1+off*2,3-off*2,3-off*2], [78,80,80,78], color='k')
-plt.text(x=2-0.075, y=80, s='*')
+    # OpHp vs. KU100
+    plt.plot([1+off*2,1+off*2,3-off*2,3-off*2], [78,80,80,78], color='k')
+    plt.text(x=2-0.075, y=80, s='*')
+
+# Alternative: Connect all pariwise significant tests (p < 0.05) after Bonferroni correction
+
+if 1:
+    o = -8
+    # OpEar vs. Rest
+    plt.plot([0+off, 1-off], [84+o,84+o], color='k')
+    plt.plot([0+off, 2-off], [86+o,86+o], color='k')
+    plt.plot([0+off, 3-off], [88+o,88+o], color='k')
+    # Indiv. vs. KU100
+    plt.plot([2+off,3-off], [82+o,82+o], color='k')
+
+
 
 plt.ylabel(ylabel, fontsize=ylabel_textsize)
 plt.ylim([0,100.0])
@@ -168,15 +200,26 @@ plt.plot([2.5,2.5], [0,100], color='gray')
 plt.plot([3.5,3.5], [0,100], color='gray')
 plt.plot([4.5,4.5], [0,100], color='gray')
 
-# p values
-plt.plot([1-offs, 1-offs, 1+offs, 1+offs], [28,30,30,28], color='k')
-plt.text(x=1-0.075, y=30, s='*', color='k')
-plt.plot([2-offs, 2-offs, 2+offs, 2+offs], [68,70,70,68], color='k')
-plt.text(x=2-0.075*3, y=70, s='***', color='k')
-plt.plot([3-offs, 3-offs, 3+offs, 3+offs], [68,70,70,68], color='k')
-plt.text(x=3-0.075*3, y=70, s='***', color='k')
-plt.plot([4-offs, 4-offs, 4+offs, 4+offs], [78,80,80,78], color='k')
-plt.text(x=4-0.075*3, y=80, s='***', color='k')
+if 0:
+    # p values
+    plt.plot([1-offs, 1-offs, 1+offs, 1+offs], [28,30,30,28], color='k')
+    plt.text(x=1-0.075, y=30, s='*', color='k')
+    plt.plot([2-offs, 2-offs, 2+offs, 2+offs], [68,70,70,68], color='k')
+    plt.text(x=2-0.075*3, y=70, s='***', color='k')
+    plt.plot([3-offs, 3-offs, 3+offs, 3+offs], [68,70,70,68], color='k')
+    plt.text(x=3-0.075*3, y=70, s='***', color='k')
+    plt.plot([4-offs, 4-offs, 4+offs, 4+offs], [78,80,80,78], color='k')
+    plt.text(x=4-0.075*3, y=80, s='***', color='k')
+if 1:
+    # p values
+    #plt.plot([1-offs, 1+offs], [30,30], color='k')
+    #plt.text(x=1-0.075, y=30, s='*', color='k')
+    plt.plot([2-offs, 2+offs], [70,70], color='k')
+    #plt.text(x=2-0.075*3, y=70, s='***', color='k')
+    plt.plot([3-offs, 3+offs], [70,70], color='k')
+    #plt.text(x=3-0.075*3, y=70, s='***', color='k')
+    plt.plot([4-offs, 4+offs], [80,80], color='k')
+    #plt.text(x=4-0.075*3, y=80, s='***', color='k')
 
 
 plt.ylabel(ylabel, fontsize=ylabel_textsize)

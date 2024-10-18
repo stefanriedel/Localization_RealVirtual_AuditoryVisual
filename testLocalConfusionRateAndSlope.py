@@ -23,7 +23,7 @@ slope_dynamic_ele = np.load(file=pjoin(data_dir, 'SlopeDataElevationDynamic.npy'
 slope_dynamic_azi = np.load(file=pjoin(data_dir, 'SlopeDataAzimuthDynamic.npy'), allow_pickle=True).tolist()
 
 # TESTS WITHIN STATIC CONDITIONS
-condition_pairs = [['StaticKU100HRTF', 'StaticIndivHRTF'], ['StaticIndivHRTF', 'StaticOpenHeadphones'], ['StaticOpenEars', 'StaticIndivHRTF'], ['StaticOpenEars', 'StaticOpenHeadphones']]
+condition_pairs = [['StaticOpenEars', 'StaticOpenHeadphones'], ['StaticOpenEars', 'StaticIndivHRTF'], ['StaticOpenEars', 'StaticKU100HRTF'], ['StaticOpenHeadphones', 'StaticIndivHRTF'], ['StaticOpenHeadphones', 'StaticKU100HRTF'], ['StaticIndivHRTF', 'StaticKU100HRTF']]
 if AZIMUTH:
     # Static LCR Azimuth Tests
     directions = [*range(20)] # All directions of the three height layers
@@ -61,7 +61,8 @@ if ELEVATION:
     print('')
 
 # TESTS WITHIN DYNAMIC CONDITIONS
-condition_pairs = [['DynamicKEMARHRTF', 'DynamicKU100HRTF'], ['DynamicKU100HRTF', 'DynamicOpenHeadphones'], ['DynamicOpenEars', 'DynamicKU100HRTF'], ['DynamicOpenEars', 'DynamicOpenHeadphones']]
+condition_pairs = [['DynamicOpenEars', 'DynamicOpenHeadphones'], ['DynamicOpenEars', 'DynamicKEMARHRTF'], ['DynamicOpenEars', 'DynamicKU100HRTF'], 
+                    ['DynamicOpenHeadphones', 'DynamicKEMARHRTF'], ['DynamicOpenHeadphones', 'DynamicKU100HRTF'] , ['DynamicKEMARHRTF', 'DynamicKU100HRTF']]
 if AZIMUTH:
     # Dynamic LCR Azimuth Tests
     directions = [*range(20)] # All directions of the three height layers
@@ -150,7 +151,6 @@ for condition_pair in condition_pairs:
 print('')
 
 # TESTS ON VISUAL ANCHOR DENSITY: DYNAMIC
-
 condition_pairs = [['DynamicKU100HRTF', 'DynamicKU100HRTF'], [ 'DynamicKEMARHRTF', 'DynamicKEMARHRTF'], ['DynamicOpenHeadphones', 'DynamicOpenHeadphones'], ['DynamicOpenEars', 'DynamicOpenEars']]
 # Visual Anchor Density LCR Elevation Tests
 directions = [[1,9,2,10], [7,15,6,14]]
