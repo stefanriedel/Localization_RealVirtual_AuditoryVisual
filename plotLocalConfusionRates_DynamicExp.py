@@ -73,9 +73,9 @@ off = 0.075
 # Alternative: Connect all pariwise significant tests (p < 0.05) after Bonferroni correction
 # Asterisk to indicate significant differences to static experiment
 if 1:
-    plt.text(x=0-0.075, y=2.5, s='*', fontsize=12)
-    plt.text(x=1-0.075, y=2.5, s='*', fontsize=12)
-    plt.text(x=3-0.075, y=2.5, s='*', fontsize=12)
+    plt.text(x=0-0.1, y=2.5, s='*', fontsize=14)
+    plt.text(x=1-0.1, y=2.5, s='*', fontsize=14)
+    plt.text(x=3-0.1, y=2.5, s='*', fontsize=14)
 
 
 
@@ -131,8 +131,8 @@ if 1:
     plt.plot([1+off,3-off], [82+o,82+o], color='k')
 
     
-    plt.text(x=0-0.075, y=20, s='*', fontsize=12)
-    plt.text(x=1-0.075, y=35, s='*', fontsize=12)
+    plt.text(x=0-0.1, y=20, s='*', fontsize=14)
+    plt.text(x=1-0.1, y=35, s='*', fontsize=14)
     #plt.text(x=3-0.075, y=72.5, s='*', fontsize=12)
 
 
@@ -197,15 +197,27 @@ plt.plot([2.5,2.5], [0,100], color='gray')
 plt.plot([3.5,3.5], [0,100], color='gray')
 plt.plot([4.5,4.5], [0,100], color='gray')
 
-# p values
-plt.plot([1-offs, 1-offs, 1+offs, 1+offs], [28,30,30,28], color='k')
-plt.text(x=1-0.075*2, y=31, s='ns', color='k')
-plt.plot([2-offs, 2-offs, 2+offs, 2+offs], [68,70,70,68], color='k')
-plt.text(x=2-0.075*3, y=70, s='***', color='k')
-plt.plot([3-offs, 3-offs, 3+offs, 3+offs], [68,70,70,68], color='k')
-plt.text(x=3-0.075*3, y=70, s='***', color='k')
-plt.plot([4-offs, 4-offs, 4+offs, 4+offs], [78,80,80,78], color='k')
-plt.text(x=4-0.075*2, y=80, s='**', color='k')
+
+if 0:
+    # p values
+    plt.plot([1-offs, 1-offs, 1+offs, 1+offs], [28,30,30,28], color='k')
+    plt.text(x=1-0.075*2, y=31, s='ns', color='k')
+    plt.plot([2-offs, 2-offs, 2+offs, 2+offs], [68,70,70,68], color='k')
+    plt.text(x=2-0.075*3, y=70, s='***', color='k')
+    plt.plot([3-offs, 3-offs, 3+offs, 3+offs], [68,70,70,68], color='k')
+    plt.text(x=3-0.075*3, y=70, s='***', color='k')
+    plt.plot([4-offs, 4-offs, 4+offs, 4+offs], [78,80,80,78], color='k')
+    plt.text(x=4-0.075*2, y=80, s='**', color='k')
+if 1:
+    # p values
+    #plt.plot([1-offs, 1+offs], [30,30], color='k')
+    #plt.text(x=1-0.075*2, y=31, s='ns', color='k')
+    plt.plot([2-offs, 2+offs], [70,70], color='k')
+    #plt.text(x=2-0.075*3, y=70, s='***', color='k')
+    plt.plot([3-offs, 3+offs], [70,70], color='k')
+    #plt.text(x=3-0.075*3, y=70, s='***', color='k')
+    plt.plot([4-offs, 4+offs], [80,80], color='k')
+    #plt.text(x=4-0.075*2, y=80, s='**', color='k')
 
 
 plt.ylabel(ylabel, fontsize=ylabel_textsize)
