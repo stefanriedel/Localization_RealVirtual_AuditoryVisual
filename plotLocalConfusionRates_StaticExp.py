@@ -40,20 +40,21 @@ def getConfusionRatesConstantSampleSize(lcr_data, conditions, directions):
 
 
 conditions = ['StaticOpenEars', 'StaticOpenHeadphones', 'StaticIndivHRTF', 'StaticKU100HRTF']
-xlabel = ['Op.Ear ', ' Op.Hp.', 'Indiv.' , 'KU100']
+xlabel = ['Op.Ear', ' Op.Hp.', 'Indiv.' , 'KU100']
 
 
 # STATIC HORIZONTAL: GLOBAL
 directions = [*range(20)] 
-ylabel = 'Horizontal LCR (%)' 
+#ylabel = 'Horizontal LCR (%)'
+ylabel = 'Local Confusion Rate (%)'  
 savename = 'StaticHorizontalLCR.eps'
 
 confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_azi, conditions, directions)
 
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
-ax = sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'lightgreen', 'lightcoral'], inner_kws=dict(whis_width=2, color="black")) 
-#plt.setp(ax.collections, alpha=.1)
+ax = sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'lightgreen', 'lightcoral'], inner_kws=dict(whis_width=1, color="black", marker=''))
+plt.plot([0,1,2,3], np.median(confusion_rates.T * 100.0, axis=0), linestyle='', marker='o', markerfacecolor='white', markeredgecolor='k')
 plt.xticks([0,1,2,3], xlabel)
 
 off = 0.075
@@ -86,27 +87,43 @@ if 1:
 
 plt.ylabel(ylabel, fontsize=ylabel_textsize)
 plt.ylim([0,100.0])
+#plt.ylim([-15,100.0])
+
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
-plt.title('Static')
+#plt.title('Static')
+plt.title('Horizontal (Static)')
+
+#Report mean LCR values:
+yval = 85
+clr = 'dimgray'
+fs=10
+off = -0.1
+plt.text(x=0 + off,y=yval+6,s=r'$\overline{\mathrm{LCR}}:$', color=clr, fontsize=fs)
+plt.text(x=0 + off,y=yval,s='4%', color=clr, fontsize=fs)
+plt.text(x=1 + off,y=yval,s='13%', color=clr, fontsize=fs)
+plt.text(x=2 + off,y=yval,s='8%', color=clr, fontsize=fs)
+plt.text(x=3 + off,y=yval,s='11%', color=clr, fontsize=fs)
+
 
 plt.text(x=-0.1,y=-17,s='--Real--')
 plt.text(x=1.9,y=-17,s='--Virtual--')
 
 plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
-plt.show(block=True)
+plt.show(block=False)
 
 
 # STATIC VERTICAL: GLOBAL
 directions = [*range(20)] + [*range(21, 25)]
-ylabel = 'Vertical LCR (%)' 
+#ylabel = 'Vertical LCR (%)' 
 savename = 'StaticVerticalLCR.eps'
 
 confusion_rates = getConfusionRatesConstantSampleSize(lcr_static_ele, conditions, directions)
 
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
-sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'lightgreen', 'lightcoral'], inner_kws=dict(whis_width=2, color="black"))
+sns.violinplot(confusion_rates.T * 100.0, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'lightgreen', 'lightcoral'], inner_kws=dict(whis_width=1, color="black", marker=''))
+plt.plot([0,1,2,3], np.median(confusion_rates.T * 100.0, axis=0), linestyle='', marker='o', markerfacecolor='white', markeredgecolor='k')
 plt.xticks([0,1,2,3], xlabel)
 
 off = 0.075
@@ -144,16 +161,29 @@ plt.ylabel(ylabel, fontsize=ylabel_textsize)
 plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
-plt.title('Static')
+#plt.title('Static')
+plt.title('Vertical (Static)')
+
+#Report mean LCR values:
+yval = 85
+clr = 'dimgray'
+fs=10
+off = -0.1
+plt.text(x=0 + off,y=yval+6,s=r'$\overline{\mathrm{LCR}}:$', color=clr, fontsize=fs)
+plt.text(x=0 + off,y=yval,s='12%', color=clr, fontsize=fs)
+plt.text(x=1 + off,y=yval,s='38%', color=clr, fontsize=fs)
+plt.text(x=2 + off,y=yval,s='35%', color=clr, fontsize=fs)
+plt.text(x=3 + off,y=yval,s='45%', color=clr, fontsize=fs)
 
 plt.text(x=-0.1,y=-17,s='--Real--')
 plt.text(x=1.9,y=-17,s='--Virtual--')
 
 plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
-plt.show(block=True)
+plt.show(block=False)
 
 
-ylabel = 'Vertical LCR (%)' 
+#ylabel = 'Vertical LCR (%)' 
+ylabel = 'Local Confusion Rate (%)' 
 savename = 'StaticVerticalLCR_DenseVsSparse.eps'
 density_directions = [[7, 15, 6, 14], [1, 9, 2, 10]]
 lcr_data = lcr_static_ele
@@ -176,23 +206,60 @@ for condition in conditions:
 
         condition_idx += 1
 
-median_iqr_density = median_iqr()
-median_iqr_density.low = np.quantile(confusion_rates*100.0, q=0.25, axis=1)
-median_iqr_density.high = np.quantile(confusion_rates*100.0, q=0.75, axis=1)
+def adjacent_values(vals, q1, q3):
+    upper_adjacent_value = q3 + (q3 - q1) * 1.5
+    upper_adjacent_value = np.clip(upper_adjacent_value, q3, vals[-1])
+
+    lower_adjacent_value = q1 - (q3 - q1) * 1.5
+    lower_adjacent_value = np.clip(lower_adjacent_value, vals[0], q1)
+    return lower_adjacent_value, upper_adjacent_value
 
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
 offs = 0.25
 medians = np.median(confusion_rates.T * 100.0, axis=0)
 
+
+quartile1, medians, quartile3 = np.percentile(confusion_rates * 100.0, [25, 50, 75], axis=1)
+whiskers = np.array([
+    adjacent_values(sorted_array, q1, q3)
+    for sorted_array, q1, q3 in zip(np.sort(confusion_rates * 100.0), quartile1, quartile3)])
+whiskersMin, whiskersMax = whiskers[:, 0], whiskers[:, 1]
+
+# 15-degree spacing
 h_idx = [0,2,4,6]
-plt.errorbar([1-offs, 2-offs, 3-offs, 4-offs], 
-                medians[h_idx], yerr=[medians[h_idx]-median_iqr_density.low[h_idx], median_iqr_density.high[h_idx]-medians[h_idx]], 
-                ls='', marker='D', markerfacecolor='white', markeredgecolor='tab:blue', capsize=3.5, color='tab:blue', label='15° spacing')
+#plt.errorbar([1-offs, 2-offs, 3-offs, 4-offs], 
+#                medians[h_idx], yerr=[medians[h_idx]-median_iqr_density.low[h_idx], median_iqr_density.high[h_idx]-medians[h_idx]], 
+#                ls='', marker='D', markerfacecolor='white', markeredgecolor='tab:blue', capsize=3.5, color='tab:blue', label='15° spacing')
+x_inds = [1-offs, 2-offs, 3-offs, 4-offs]
+# violins = plt.violinplot(
+#         confusion_rates[h_idx,:].T * 100.0, positions=x_inds, showmeans=False, showmedians=False,
+#         showextrema=False)
+# for pc in violins['bodies']:
+#     pc.set_facecolor('white')
+#     pc.set_edgecolor('black')
+#     pc.set_alpha(1)
+plt.plot(x_inds, medians[h_idx], marker='D', markerfacecolor='white', markeredgecolor='k', zorder=3, ls='')
+plt.vlines(x_inds, quartile1[h_idx], quartile3[h_idx], color='tab:blue', linestyle='-', lw=5)
+plt.vlines(x_inds, whiskersMin[h_idx], whiskersMax[h_idx], color='tab:blue', linestyle='-', lw=1)
+
+
 l_idx = [1,3,5,7]
-plt.errorbar([1+offs, 2+offs, 3+offs, 4+offs], 
-                medians[l_idx], yerr=[medians[l_idx]-median_iqr_density.low[l_idx], median_iqr_density.high[l_idx]-medians[l_idx]], 
-                ls='', marker='s', markerfacecolor='white', markeredgecolor='k', capsize=3.5, color='k', label='30° spacing')
+#plt.errorbar([1+offs, 2+offs, 3+offs, 4+offs], 
+#                medians[l_idx], yerr=[medians[l_idx]-median_iqr_density.low[l_idx], median_iqr_density.high[l_idx]-medians[l_idx]], 
+#                ls='', marker='s', markerfacecolor='white', markeredgecolor='k', capsize=3.5, color='k', label='30° spacing')
+x_inds = [1+offs, 2+offs, 3+offs, 4+offs]
+# violins = plt.violinplot(
+#         confusion_rates[l_idx,:].T * 100.0, positions=x_inds, showmeans=False, showmedians=False,
+#         showextrema=False)
+# for pc in violins['bodies']:
+#     pc.set_facecolor('white')
+#     pc.set_edgecolor('black')
+#     pc.set_alpha(1)
+plt.plot(x_inds, medians[l_idx], marker='o', markerfacecolor='white', markeredgecolor='k', zorder=3, ls='')
+plt.vlines(x_inds, quartile1[l_idx], quartile3[l_idx], color='k', linestyle='-', lw=5)
+plt.vlines(x_inds, whiskersMin[l_idx], whiskersMax[l_idx], color='k', linestyle='-', lw=1)
+
 
 plt.xticks([1,2,3,4], xlabel)
 plt.plot([1.5,1.5], [0,100], color='gray')
@@ -211,6 +278,7 @@ if 0:
     plt.plot([4-offs, 4-offs, 4+offs, 4+offs], [78,80,80,78], color='k')
     plt.text(x=4-0.075*3, y=80, s='***', color='k')
 if 1:
+    offs = 0.15
     # p values
     #plt.plot([1-offs, 1+offs], [30,30], color='k')
     #plt.text(x=1-0.075, y=30, s='*', color='k')
@@ -221,12 +289,20 @@ if 1:
     plt.plot([4-offs, 4+offs], [80,80], color='k')
     #plt.text(x=4-0.075*3, y=80, s='***', color='k')
 
+import matplotlib.patches as mpatches
+import matplotlib.lines as mlines
+
+blue_patch = mlines.Line2D([], [], color='tab:blue', marker='D', markerfacecolor='white', markeredgecolor='k', lw=3,
+                          markersize=5, label='15° spacing')
+black_patch = mlines.Line2D([], [], color='k', marker='o', markerfacecolor='white', markeredgecolor='k', lw=3,
+                          markersize=5, label='30° spacing')
+
 
 plt.ylabel(ylabel, fontsize=ylabel_textsize)
 plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
-plt.legend(framealpha=1.0)
-plt.title('Static')
+plt.legend(handles=[blue_patch, black_patch],framealpha=1.0)
+plt.title('Vertical (Static)')
 plt.tight_layout()
 
 plt.text(x=-0.1 + 1, y=-17,s='--Real--')
