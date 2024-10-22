@@ -13,10 +13,10 @@ from datetime import datetime
 
 USE_PIERCINGPOINT_DIRECTION = True
 
-RENDER_LATERAL_PLANES = False
+RENDER_LATERAL_PLANES = True
 ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
-RENDER_VERTICAL_PLANES = False
+RENDER_VERTICAL_PLANES = True
 
 COMPUTE_DATA_FOR_TESTS = False
 
@@ -29,7 +29,7 @@ SAVE_ERROR_METRICS = False
 
 NUM_CHANNELS = 25
 
-RENDER_WITH_JASA_NAMES = False
+RENDER_WITH_JASA_NAMES = True
 
 # Tolerance around target direction to consider as hit
 # Otherwise it is a 'quadrant error'
@@ -37,10 +37,29 @@ ANGLE_TOL = 90.0 / 180.0 * np.pi
 
 # Opening JSON file
 root_dir = dirname(__file__)
-data_dir = pjoin(root_dir, 'Responses/results_static')
+
+EXPERTS_ONLY = False
+NOVICES_ONLY = False
+
+if EXPERTS_ONLY:
+    data_dir = pjoin(root_dir, 'Responses/results_static_experts')
+if NOVICES_ONLY:
+    data_dir = pjoin(root_dir, 'Responses/results_static_novices')
+if not EXPERTS_ONLY and not NOVICES_ONLY:
+    data_dir = pjoin(root_dir, 'Responses/results_static')
+
+
+
 figures_dir = pjoin(root_dir, 'Figures', 'ExperimentResults')
 
 file_list = os.listdir(data_dir)
+
+# Subjects that took both experiments (repeated) vs. just one (new)
+#subjects_repeated_exp1 = [1,2,3,8,9,13,12,15]
+#subjects_new_exp1 = [4,5,6,7,10,12,14,16]
+
+#subjects_repeated_exp2 = [13,3,12,5,4,1,11,2]
+#subjects_new_exp2 = [6,7,8,9,10,14,15,16]
 
 if '.DS_Store' in file_list:
     file_list.remove('.DS_Store')
@@ -273,6 +292,8 @@ for dict_name, num_trials, targ_unit_vecs in zip(final_dict_names,
     mean_unit_vector_data[dict_name] = mean_unit_vectors
     local_azi_ele_data[dict_name] = local_azi_ele
 
+
+np.save(pjoin('ErrorMetricData', 'local_azi_ele_data.npy'), local_azi_ele_data, allow_pickle=True)
 targets_azi_ele = np.copy(target_coord_deg)
 
 # Compute mean data for doubled responses
@@ -307,7 +328,7 @@ if RENDER_TIME_DATA_PLOT:
 
 # Lateral plane plots
 if RENDER_LATERAL_PLANES:
-    titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
+    titles = ['Open Ears', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
     EXP = 'Static'
     plot_avg_ele = False
     plotLateralPlanes(idcs_list_azi, pairtest_list_azi, target_azi_list, name_list,
@@ -317,7 +338,7 @@ if RENDER_LATERAL_PLANES:
 
 # Vertical plane plots
 if RENDER_VERTICAL_PLANES:
-    titles = ['Reference', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
+    titles = ['Open Ears', 'Open Headphones', 'Individual BRIR', 'KU100 BRIR']
     EXP = 'Static'
     plot_avg_ele = False
     if RENDER_WITH_JASA_NAMES:
@@ -360,7 +381,9 @@ if RENDER_HEMI_MAP:
     plots = ['Localization']#, 'QERate', 'ResponseTime']
     main_titles = [True, False, True]
     sub_titles = [True, False, True]
-    plot_idcs = np.array([11, 17, 19])#np.array([17, 19])#np.arange(NUM_CHANNELS)
+    #plot_idcs = np.array([1, 22, 11, 17, 19])#np.array([17, 19])#np.arange(NUM_CHANNELS)
+
+    plot_idcs = np.array([0, 24, 23]) #np.array([17, 19])#np.arange(NUM_CHANNELS)
     for plot, main_title, sub_title, in zip(plots, main_titles, sub_titles):
         plotHemisphereMap(titles,
                           final_dict_names,

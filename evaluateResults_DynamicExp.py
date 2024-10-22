@@ -13,10 +13,10 @@ from datetime import datetime
 
 USE_PIERCINGPOINT_DIRECTION = True
 
-RENDER_LATERAL_PLANES = False
+RENDER_LATERAL_PLANES = True
 ALL_PLANES = True # Plot all planes in one plot instead of separate plots
 
-RENDER_VERTICAL_PLANES = False
+RENDER_VERTICAL_PLANES = True
 
 COMPUTE_DATA_FOR_TESTS = True
 
@@ -312,7 +312,7 @@ if RENDER_TIME_DATA_PLOT:
 
 # Lateral plane plots
 if RENDER_LATERAL_PLANES:
-    titles = ['Reference', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
+    titles = ['Open Ears', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
     EXP = 'Dynamic'
     plot_avg_ele = False
     plotLateralPlanes(idcs_list_azi, pairtest_list_azi, target_azi_list, name_list,
@@ -322,7 +322,7 @@ if RENDER_LATERAL_PLANES:
 
 # Vertical plane plots
 if RENDER_VERTICAL_PLANES:
-    titles = ['Reference', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
+    titles = ['Open Ears', 'Open Headphones', 'KEMAR HRIR', 'KU100 HRIR']
     EXP = 'Dynamic'
     plot_avg_ele = False
     if RENDER_WITH_JASA_NAMES:
