@@ -1224,7 +1224,7 @@ def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second
         plt.figure()
         plt.boxplot([confusion_rate_first, confusion_rate_second])
         plt.show(block=True)
-    return
+    return res[1]
 
     
 

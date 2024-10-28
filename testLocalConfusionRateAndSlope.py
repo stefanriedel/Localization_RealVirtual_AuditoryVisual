@@ -2,8 +2,34 @@ from Utility.localizationEvaluationUtility import testGroupedLocalConfusionRate,
 from os.path import dirname, join as pjoin
 import numpy as np
 
+
+def bonferroniHolm(pvals):
+    pvals = np.asarray(pvals)
+
+    sort_indices = np.argsort(pvals)
+    corr_factor = pvals.size
+    for i in range(pvals.size):
+        pvals[sort_indices[i]] *= corr_factor
+
+        if (pvals[sort_indices[i]] < pvals[sort_indices[i-1]]) and (i > 0):
+            # EXIT: If a p-value is smaller than the previous after the correction,
+            # meaning a change in the order due to correction, clip it to the corrected previous value.
+            # This avoids a p-value to be significant when the previous/smaller value 
+            # was insignificant after correction. This corresponds to an EXIT strategy.
+            pvals[sort_indices[i]] = pvals[sort_indices[i-1]]
+
+        # Clip p-values to 1.0
+        if pvals[sort_indices[i]] > 1.0:
+            pvals[sort_indices[i]] = 1.0
+
+        # Update correction factor
+        corr_factor -= 1
+
+    return pvals
+
+
 # SET DIMENSION YOU WANT TO TEST
-AZIMUTH = False
+AZIMUTH = True
 ELEVATION = not AZIMUTH
 
 NONPARAM = True
@@ -28,10 +54,18 @@ if AZIMUTH:
     # Static LCR Azimuth Tests
     directions = [*range(20)] # All directions of the three height layers
     directions = [directions, directions]
+
+    pvals = []
     print('Static Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
         #testGroupedLocalConfusionRate(lcr_static_azi, lcr_static_azi, condition_pair, directions)
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_static_azi, condition_pair, directions, NONPARAM=NONPARAM)
+        p = testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_static_azi, condition_pair, directions, NONPARAM=NONPARAM)
+        pvals.append(p)
+    pvals = bonferroniHolm(pvals)
+
+    print('BH-corrected pvals: \n')
+    for condition_pair, i in zip(condition_pairs, range(len(condition_pairs))):
+        print(str(condition_pair) + ' p = ' + str(pvals[i]))
     print('')
 
     # Static Slope Azimuth Tests
