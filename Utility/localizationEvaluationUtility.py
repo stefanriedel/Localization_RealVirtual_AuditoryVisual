@@ -810,7 +810,8 @@ def plotVerticalPlanes(idcs_list, pairtest_list, target_ele_list, name_list,
                         mvp_idcs,
                         coord_x,
                         coord_y,
-                        [0.02, 0.585, 0.4, 0.4],
+                        [0.02, 0.585, 0.38, 0.38],
+                        #[0.005, 0.6, 0.38, 0.38],
                         mkr_size=20)
             axs[col].set_xlim(-45, 90)
             axs[col].set_ylim(-45, 90)
@@ -1164,6 +1165,7 @@ def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, c
           'pvalue: ' + str(res.pvalue), ' test-statistic: ' + str(k) + '/' + str(n))
     return
 
+
 def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second_condition_data, condition_pair, direction_pair, SUBJ_IDCS=[np.arange(16), np.arange(16)], PAIRED_SAMPLES=True, NONPARAM=True):
     # Only test over equal numbers of directions
     assert(len(direction_pair[0]) == len(direction_pair[1]))
@@ -1224,7 +1226,7 @@ def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second
         plt.figure()
         plt.boxplot([confusion_rate_first, confusion_rate_second])
         plt.show(block=True)
-    return
+    return res[1]
 
     
 
@@ -1312,8 +1314,9 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                             color='gray',
                             ls=':')
 
+            markerstyles = ['v'] * 8 + ['D'] *8 +  ['^'] * 4
             confusion_rates = np.zeros(mvp_idcs.size)
-            for i in range(mvp_idcs.size):
+            for i, j in zip(range(mvp_idcs.size), mvp_idcs):
                 azimuth_ratings = local_azi_ele_data[condition][
                     mvp_idcs[i]][:, 0]
                 if col >= 1:
@@ -1325,10 +1328,12 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                 azimuth_scatter[azimuth_ratings < -170.0] = (azimuth_scatter[azimuth_ratings < -170.0] + 360.0) % 360.0
                 axs[col].scatter(
                     target_azimuths[i] +
-                    (np.random.rand(azimuth_ratings.size) - 0.5) * 2.5 + x_offs[layer_idx],
+                    (np.random.rand(azimuth_ratings.size) - 0.5) * 0 + x_offs[layer_idx],
+                    #(np.random.rand(azimuth_ratings.size) - 0.5) * 2.5 + x_offs[layer_idx],
                     azimuth_scatter,
                     alpha=1.0,
                     edgecolors='k',
+                    #marker=markerstyles[j],
                     s=15,
                     zorder=zorder_layers[layer_idx],
                     c=all_colors[mvp_idcs[i]])
@@ -1364,12 +1369,15 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
             else:
                 if col == 0 and layer_idx == 0: # plot only once all LS directions
                     axs[col].set_ylabel('Azimuth Response (deg.)')
-                    renderInsetAxis(axs[col],
-                            np.arange(20),
-                            coord_x,
-                            coord_y,
-                            [0.02, 0.585, 0.4, 0.4],
-                            mkr_size=20)
+                    if EXP == 'Static':
+                        renderInsetAxis(axs[col],
+                                np.arange(20),
+                                coord_x,
+                                coord_y,
+                                #[-0.7, 0.3, 0.38, 0.38],
+                                [0.004, 0.605, 0.38, 0.38],
+                                #[-0.7, 0.585, 0.4, 0.4],
+                                mkr_size=20)
                 
             grid_azimuths = np.array([180, 150, 90, 30, 0, -30, -90, -150, -180])
             for i in range(grid_azimuths.size):
@@ -1419,7 +1427,7 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
                         size=14)
             plt.figtext(right_center[0],
                         0.98,
-                        "---- Virtual (" + EXP + ") ----",
+                        "---- Virtual (" + EXP + ") ----",                        
                         va="center",
                         ha="center",
                         size=14)
@@ -1433,20 +1441,27 @@ def plotLateralPlanes(idcs_list, pairtest_list, target_azi_list, name_list,
 
     if ALL_PLANES:
         # Plot global average confusion rates in case of combined plot
+        GLOBAL_CR_STATIC = [4,13,8,11]
+        GLOBAL_CR_DYNAMIC = [0,0,1,0]
+
         for col, condition in zip(range(num_cols), conditions):
-            confusion_rates_col = all_confusion_rates[col]
+            # confusion_rates_col = all_confusion_rates[col]
 
-            CR_L1 = confusion_rates_col[0]
-            CR_L2 = confusion_rates_col[1]
-            CR_L3 = confusion_rates_col[2]
+            # CR_L1 = confusion_rates_col[0]
+            # CR_L2 = confusion_rates_col[1]
+            # CR_L3 = confusion_rates_col[2]
 
-            CR_stacked = np.hstack((CR_L1,CR_L2,CR_L3)) 
+            # CR_stacked = np.hstack((CR_L1,CR_L2,CR_L3)) 
 
-            CR_GLOBAL_MEAN = np.mean(CR_stacked)
+            #CR_GLOBAL_MEAN = np.mean(CR_stacked)
 
+            if EXP=='Static':
+                CR_GLOBAL_MEAN = GLOBAL_CR_STATIC
+            else:
+                CR_GLOBAL_MEAN = GLOBAL_CR_DYNAMIC
             axs[col].text(x=-30,
                         y=150,
-                        s=r'$\overline{\mathrm{LCR}} = $' + str(round(CR_GLOBAL_MEAN*100)) + '%',
+                        s=r'$\overline{\mathrm{LCR}} = $' + str(round(CR_GLOBAL_MEAN[col])) + '%',
                         fontsize=10)
             
         # Plot global accuracy measures in case of combined plot
@@ -1607,7 +1622,8 @@ def plotHemisphereMap(titles,
             DRAW_RAW_RESPONSES = True
             if DRAW_RAW_RESPONSES:
                 #rnd_cls = rand_cls[col]
-                for participant in range(16):
+                num_participants = azi_ele_data[condition].shape[0]
+                for participant in range(num_participants):
 
                     if col > 0:
                         idcs = np.concatenate((plot_idcs, plot_idcs+25))
