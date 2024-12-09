@@ -13,7 +13,7 @@ lcr_dynamic_azi = np.load(file=pjoin(data_dir, 'LocalConfusionDataAzimuthDynamic
 slope_dynamic_ele = np.load(file=pjoin(data_dir, 'SlopeDataElevationDynamic.npy'), allow_pickle=True).tolist()
 slope_dynamic_azi = np.load(file=pjoin(data_dir, 'SlopeDataAzimuthDynamic.npy'), allow_pickle=True).tolist()
 
-ylabel_textsize = 12
+ylabel_textsize = 10
 
 class median_iqr:
     def __init__(self):
@@ -88,7 +88,7 @@ plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
 #plt.title('Dynamic')
-plt.title('Horizontal (Dynamic)')
+plt.title('(b) Horizontal (Dynamic)')
 
 #Report mean LCR values:
 yval = 85
@@ -146,11 +146,13 @@ if 1:
     plt.plot([0+off, 3-off], [88+o,88+o], color='k')
     # OpHp vs. Rest
     plt.plot([1+off,2-off], [80+o,80+o], color='k')
-    plt.plot([1+off,3-off], [82+o,82+o], color='k')
+    plt.plot([1+off,3-off*2], [82+o,82+o], color='k')
 
     
     plt.text(x=0-0.1, y=20, s='*', fontsize=14)
     plt.text(x=1-0.1, y=35, s='*', fontsize=14)
+    plt.text(x=3-0.1, y=72, s='*', fontsize=14)
+
     #plt.text(x=3-0.075, y=72.5, s='*', fontsize=12)
 
 
@@ -161,7 +163,7 @@ plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
 #plt.title('Dynamic')
-plt.title('Vertical (Dynamic)')
+plt.title('(d) Vertical (Dynamic)')
 
 #Report mean LCR values:
 yval = 85
@@ -216,10 +218,10 @@ def adjacent_values(vals, q1, q3):
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
 offs = 0.25
-medians = np.median(confusion_rates.T * 100.0, axis=0)
+medians = np.nanmedian(confusion_rates.T * 100.0, axis=0)
 
 
-quartile1, medians, quartile3 = np.percentile(confusion_rates * 100.0, [25, 50, 75], axis=1)
+quartile1, medians, quartile3 = np.nanpercentile(confusion_rates * 100.0, [25, 50, 75], axis=1)
 whiskers = np.array([
     adjacent_values(sorted_array, q1, q3)
     for sorted_array, q1, q3 in zip(np.sort(confusion_rates * 100.0), quartile1, quartile3)])
@@ -299,7 +301,7 @@ plt.ylabel(ylabel, fontsize=ylabel_textsize)
 plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.legend(handles=[blue_patch, black_patch],framealpha=1.0)
-plt.title('Vertical (Dynamic)')
+plt.title('(b) Vertical (Dynamic)')
 plt.tight_layout()
 
 plt.text(x=-0.1 + 1, y=-17,s='--Real--')

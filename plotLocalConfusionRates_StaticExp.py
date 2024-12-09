@@ -13,7 +13,7 @@ lcr_static_azi = np.load(file=pjoin(data_dir, 'LocalConfusionDataAzimuthStatic.n
 slope_static_ele = np.load(file=pjoin(data_dir, 'SlopeDataElevationStatic.npy'), allow_pickle=True).tolist()
 slope_static_azi = np.load(file=pjoin(data_dir, 'SlopeDataAzimuthStatic.npy'), allow_pickle=True).tolist()
 
-ylabel_textsize = 12
+ylabel_textsize = 10
 
 class median_iqr:
     def __init__(self):
@@ -92,7 +92,7 @@ plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
 #plt.title('Static')
-plt.title('Horizontal (Static)')
+plt.title('(a) Horizontal (Static)')
 
 #Report mean LCR values:
 yval = 85
@@ -108,6 +108,8 @@ plt.text(x=3 + off,y=yval,s='11%', color=clr, fontsize=fs)
 
 plt.text(x=-0.1,y=-17,s='--Real--')
 plt.text(x=1.9,y=-17,s='--Virtual--')
+#plt.text(x=1.25,y=-25,s='(a)', fontsize=14)
+
 
 plt.savefig(pjoin(fig_dir, savename), bbox_inches='tight')
 plt.show(block=False)
@@ -152,8 +154,10 @@ if 1:
     plt.plot([0+off, 1-off], [84+o,84+o], color='k')
     plt.plot([0+off, 2-off], [86+o,86+o], color='k')
     plt.plot([0+off, 3-off], [88+o,88+o], color='k')
+    # OpHp vs. KU100
+    plt.plot([1+off,3-off], [82+o,82+o], color='k')
     # Indiv. vs. KU100
-    plt.plot([2+off,3-off], [82+o,82+o], color='k')
+    plt.plot([2+off,3-off], [80+o,80+o], color='k')
 
 
 
@@ -162,7 +166,7 @@ plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.tight_layout()
 #plt.title('Static')
-plt.title('Vertical (Static)')
+plt.title('(c) Vertical (Static)')
 
 #Report mean LCR values:
 yval = 85
@@ -186,6 +190,7 @@ plt.show(block=False)
 ylabel = 'Local Confusion Rate (%)' 
 savename = 'StaticVerticalLCR_DenseVsSparse.eps'
 density_directions = [[7, 15, 6, 14], [1, 9, 2, 10]]
+#density_directions = [[24, 0, 23], [6, 21, 14]]
 lcr_data = lcr_static_ele
 
 confusion_rates = np.zeros((8,16))
@@ -217,10 +222,10 @@ def adjacent_values(vals, q1, q3):
 plt.figure(figsize=(3,3))
 plt.grid(axis='y')
 offs = 0.25
-medians = np.median(confusion_rates.T * 100.0, axis=0)
+medians = np.nanmedian(confusion_rates.T * 100.0, axis=0)
 
 
-quartile1, medians, quartile3 = np.percentile(confusion_rates * 100.0, [25, 50, 75], axis=1)
+quartile1, medians, quartile3 = np.nanpercentile(confusion_rates * 100.0, [25, 50, 75], axis=1)
 whiskers = np.array([
     adjacent_values(sorted_array, q1, q3)
     for sorted_array, q1, q3 in zip(np.sort(confusion_rates * 100.0), quartile1, quartile3)])
@@ -280,7 +285,7 @@ if 0:
 if 1:
     offs = 0.15
     # p values
-    #plt.plot([1-offs, 1+offs], [30,30], color='k')
+    plt.plot([1-offs, 1+offs], [30,30], color='k')
     #plt.text(x=1-0.075, y=30, s='*', color='k')
     plt.plot([2-offs, 2+offs], [70,70], color='k')
     #plt.text(x=2-0.075*3, y=70, s='***', color='k')
@@ -302,7 +307,7 @@ plt.ylabel(ylabel, fontsize=ylabel_textsize)
 plt.ylim([0,100.0])
 plt.yticks(ticks=np.arange(0, 110, 10))
 plt.legend(handles=[blue_patch, black_patch],framealpha=1.0)
-plt.title('Vertical (Static)')
+plt.title('(a) Vertical (Static)')
 plt.tight_layout()
 
 plt.text(x=-0.1 + 1, y=-17,s='--Real--')
