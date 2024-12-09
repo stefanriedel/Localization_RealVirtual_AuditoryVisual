@@ -29,7 +29,7 @@ def bonferroniHolm(pvals):
 
 
 # SET DIMENSION YOU WANT TO TEST
-AZIMUTH = True
+AZIMUTH = False
 ELEVATION = not AZIMUTH
 
 NONPARAM = True
@@ -52,11 +52,11 @@ slope_dynamic_azi = np.load(file=pjoin(data_dir, 'SlopeDataAzimuthDynamic.npy'),
 condition_pairs = [['StaticOpenEars', 'StaticOpenHeadphones'], ['StaticOpenEars', 'StaticIndivHRTF'], ['StaticOpenEars', 'StaticKU100HRTF'], ['StaticOpenHeadphones', 'StaticIndivHRTF'], ['StaticOpenHeadphones', 'StaticKU100HRTF'], ['StaticIndivHRTF', 'StaticKU100HRTF']]
 if AZIMUTH:
     # Static LCR Azimuth Tests
+    print('Static Azimuth LCR Tests: ')
+
     directions = [*range(20)] # All directions of the three height layers
     directions = [directions, directions]
-
     pvals = []
-    print('Static Azimuth LCR Tests: ')
     for condition_pair in condition_pairs:
         #testGroupedLocalConfusionRate(lcr_static_azi, lcr_static_azi, condition_pair, directions)
         p = testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_static_azi, condition_pair, directions, NONPARAM=NONPARAM)
@@ -69,7 +69,6 @@ if AZIMUTH:
     print('')
 
     # Static Slope Azimuth Tests
-    #planes = ['0DEG+30DEG+60DEG']
     planes = ['0DEG', '30DEG', '60DEG']
     print('Static Azimuth Slope Tests: ')
     for condition_pair in condition_pairs:
@@ -79,12 +78,18 @@ if AZIMUTH:
 if ELEVATION:
     # Static LCR Elevation Tests
     print('Static Elevation LCR Test: ')
+
     directions = [*range(20)] + [*range(21, 25)] # All directions except the zenith
     directions = [directions, directions]
+    pvals = []
     for condition_pair in condition_pairs:
-        #testGroupedLocalConfusionRate(lcr_static_ele, lcr_static_ele, condition_pair, directions)
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_static_ele, condition_pair, directions, NONPARAM=NONPARAM)
-
+        p = testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_static_ele, condition_pair, directions, NONPARAM=NONPARAM)
+        pvals.append(p)
+    pvals = bonferroniHolm(pvals)
+    
+    print('BH-corrected pvals: \n')
+    for condition_pair, i in zip(condition_pairs, range(len(condition_pairs))):
+        print(str(condition_pair) + ' p = ' + str(pvals[i]))
     print('')
 
     # Static Slope Elevation Tests
@@ -99,15 +104,22 @@ condition_pairs = [['DynamicOpenEars', 'DynamicOpenHeadphones'], ['DynamicOpenEa
                     ['DynamicOpenHeadphones', 'DynamicKEMARHRTF'], ['DynamicOpenHeadphones', 'DynamicKU100HRTF'] , ['DynamicKEMARHRTF', 'DynamicKU100HRTF']]
 if AZIMUTH:
     # Dynamic LCR Azimuth Tests
+    print('Dynamic Azimuth LCR Tests: ')
+
     directions = [*range(20)] # All directions of the three height layers
     directions = [directions, directions]
-    print('Dynamic Azimuth LCR Tests: ')
+    pvals = []
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_azi, lcr_dynamic_azi, condition_pair, directions, NONPARAM=NONPARAM)
+        p = testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_azi, lcr_dynamic_azi, condition_pair, directions, NONPARAM=NONPARAM)
+        pvals.append(p)
+    pvals = bonferroniHolm(pvals)
+    
+    print('BH-corrected pvals: \n')
+    for condition_pair, i in zip(condition_pairs, range(len(condition_pairs))):
+        print(str(condition_pair) + ' p = ' + str(pvals[i]))
     print('')
 
     # Dynamic Slope Azimuth Tests
-    #planes = ['0DEG+30DEG+60DEG']
     planes = ['0DEG', '30DEG', '60DEG']
     print('Dynamic Azimuth Slope Tests: ')
     for condition_pair in condition_pairs:
@@ -115,11 +127,19 @@ if AZIMUTH:
     print('')
 if ELEVATION:
     # Dynamic LCR Elevation Tests
+    print('Dynamic Elevation LCR Tests: ')
+
     directions = [*range(20)] + [*range(21, 25)] # All directions except the zenith
     directions = [directions, directions]
-    print('Dynamic Elevation LCR Tests: ')
+    pvals = []
     for condition_pair in condition_pairs:
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions, NONPARAM=NONPARAM)
+        p = testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions, NONPARAM=NONPARAM)
+        pvals.append(p)
+    pvals = bonferroniHolm(pvals)
+    
+    print('BH-corrected pvals: \n')
+    for condition_pair, i in zip(condition_pairs, range(len(condition_pairs))):
+        print(str(condition_pair) + ' p = ' + str(pvals[i]))
     print('')
 
     # Dynamic Slope Elevation Tests
@@ -131,26 +151,26 @@ if ELEVATION:
 
 
 # TESTS STATIC VS. DYNAMIC CONDITIONS
-condition_pairs = [['StaticKU100HRTF', 'DynamicKU100HRTF'], [ 'StaticIndivHRTF', 'DynamicKU100HRTF'], ['StaticOpenHeadphones', 'DynamicOpenHeadphones'], ['StaticOpenEars', 'DynamicOpenEars']]
-
-# Compare only participants that took part in both experiments
-#subjects_repeated_exp1 = np.array([1,2,3,8,9,13,12,15])
-#subjects_repeated_exp2 = np.array([13,3,12,5,4,1,11,2])
-
-#subject_idcs = [subjects_repeated_exp1, subjects_repeated_exp2]
+condition_pairs = [['StaticKU100HRTF', 'DynamicKU100HRTF'], ['StaticOpenHeadphones', 'DynamicOpenHeadphones'], ['StaticOpenEars', 'DynamicOpenEars']]
 
 if AZIMUTH:
     # StaticVSDynamic LCR Azimuth Tests
+    print('StaticVSDynamic Azimuth LCR Tests: ')
+
     directions = [*range(20)] # All directions of the three height layers
     directions = [directions, directions]
-    print('StaticVSDynamic Azimuth LCR Tests: ')
+    pvals = []
     for condition_pair in condition_pairs:
-        #testGroupedLocalConfusionRate(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, SUBJ_IDCS=subject_idcs)
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, PAIRED_SAMPLES=False, NONPARAM=NONPARAM)
+        p = testGroupedLocalConfusionRateConstantSampleSize(lcr_static_azi, lcr_dynamic_azi, condition_pair, directions, PAIRED_SAMPLES=False, NONPARAM=NONPARAM)
+        pvals.append(p)
+    pvals = bonferroniHolm(pvals)
+    
+    print('BH-corrected pvals: \n')
+    for condition_pair, i in zip(condition_pairs, range(len(condition_pairs))):
+        print(str(condition_pair) + ' p = ' + str(pvals[i]))
     print('')
 
     # StaticVSDynamic Slope Azimuth Tests
-    #planes = ['0DEG+30DEG+60DEG']
     planes = ['0DEG', '30DEG', '60DEG']
     print('StaticVSDynamic Azimuth Slope Tests: ')
     for condition_pair in condition_pairs:
@@ -158,12 +178,19 @@ if AZIMUTH:
     print('')
 if ELEVATION:
     # StaticVSDynamic LCR Elevation Tests
+    print('StaticVSDynamic Elevation LCR Tests: ')
+
     directions = [*range(20)] + [*range(21, 25)] # All directions except the zenith
     directions = [directions, directions]
-    print('StaticVSDynamic Elevation LCR Tests: ')
+    pvals = []
     for condition_pair in condition_pairs:
-        #testGroupedLocalConfusionRate(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, SUBJ_IDCS=subject_idcs)
-        testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, PAIRED_SAMPLES=False, NONPARAM=NONPARAM)
+        p = testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_dynamic_ele, condition_pair, directions, PAIRED_SAMPLES=False, NONPARAM=NONPARAM)
+        pvals.append(p)
+    pvals = bonferroniHolm(pvals)
+    
+    print('BH-corrected pvals: \n')
+    for condition_pair, i in zip(condition_pairs, range(len(condition_pairs))):
+        print(str(condition_pair) + ' p = ' + str(pvals[i]))
     print('')
 
     # StaticVSDynamic Slope Elevation Tests
@@ -174,25 +201,39 @@ if ELEVATION:
     print('')
 
 # TESTS ON VISUAL ANCHOR DENSITY: STATIC
-condition_pairs = [['StaticKU100HRTF', 'StaticKU100HRTF'], [ 'StaticIndivHRTF', 'StaticIndivHRTF'], ['StaticOpenHeadphones', 'StaticOpenHeadphones'], ['StaticOpenEars', 'StaticOpenEars']]
-# Visual Anchor Density LCR Elevation Tests
-directions = [[1,9,2,10], [7,15,6,14]]
-#directions = [[1,9], [7,15]]
+condition_pairs = [['StaticKU100HRTF', 'StaticKU100HRTF'], ['StaticIndivHRTF', 'StaticIndivHRTF'], ['StaticOpenHeadphones', 'StaticOpenHeadphones'], ['StaticOpenEars', 'StaticOpenEars']]
 
+# Visual Anchor Density LCR Elevation Tests
 print('Visual Anchor Density LCR Elevation Tests: ')
+
+directions = [[1,9,2,10], [7,15,6,14]]
+pvals = []
 for condition_pair in condition_pairs:
-    testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_static_ele, condition_pair, directions, NONPARAM=NONPARAM)
+    p = testGroupedLocalConfusionRateConstantSampleSize(lcr_static_ele, lcr_static_ele, condition_pair, directions, NONPARAM=NONPARAM)
+    pvals.append(p)
+pvals = bonferroniHolm(pvals)
+
+print('\n BH-corrected pvals:')
+for condition_pair, i in zip(condition_pairs, range(len(condition_pairs))):
+    print(str(condition_pair) + ' p = ' + str(pvals[i]))
 print('')
 
 # TESTS ON VISUAL ANCHOR DENSITY: DYNAMIC
 condition_pairs = [['DynamicKU100HRTF', 'DynamicKU100HRTF'], [ 'DynamicKEMARHRTF', 'DynamicKEMARHRTF'], ['DynamicOpenHeadphones', 'DynamicOpenHeadphones'], ['DynamicOpenEars', 'DynamicOpenEars']]
-# Visual Anchor Density LCR Elevation Tests
-directions = [[1,9,2,10], [7,15,6,14]]
-#directions = [[1,9], [7,15]]
 
+# Visual Anchor Density LCR Elevation Tests
 print('Visual Anchor Density LCR Elevation Tests: ')
+
+directions = [[1,9,2,10], [7,15,6,14]]
+pvals = []
 for condition_pair in condition_pairs:
-    testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions, NONPARAM=NONPARAM)
+    p = testGroupedLocalConfusionRateConstantSampleSize(lcr_dynamic_ele, lcr_dynamic_ele, condition_pair, directions, NONPARAM=NONPARAM)
+    pvals.append(p)
+pvals = bonferroniHolm(pvals)
+
+print('\n BH-corrected pvals:')
+for condition_pair, i in zip(condition_pairs, range(len(condition_pairs))):
+    print(str(condition_pair) + ' p = ' + str(pvals[i]))
 print('')
 
 
