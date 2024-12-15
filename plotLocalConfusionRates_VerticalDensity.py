@@ -43,7 +43,7 @@ def plot_confusion_rates(ax, lcr_data, conditions, xlabel, ylabel, title):
 
             condition_idx += 1
 
-    offs = 0.25
+    offs = 0.2
     medians = np.nanmedian(confusion_rates.T * 100.0, axis=0)
 
     quartile1, medians, quartile3 = np.nanpercentile(confusion_rates * 100.0, [25, 50, 75], axis=1)
@@ -72,6 +72,9 @@ def plot_confusion_rates(ax, lcr_data, conditions, xlabel, ylabel, title):
     ax.grid(axis='y')
     ax.set_title(title)
 
+    ax.text(x=0 + 1, y=-17,s='--Real--')
+    ax.text(x=2 + 1, y=-17,s='--Virtual--')
+
 # Subplot settings
 fig, axs = plt.subplots(1, 2, figsize=(6, 3), sharey=False, gridspec_kw={'wspace': 0.2})
 
@@ -83,7 +86,7 @@ plot_confusion_rates(
     ylabel='Local Confusion Rate (%)',
     title='(a) Vertical (Static)'
 )
-offs = 0.15
+offs = 0.125
 axs[0].plot([1-offs, 1+offs], [30,30], color='k')
 axs[0].plot([2-offs, 2+offs], [70,70], color='k')
 axs[0].plot([3-offs, 3+offs], [70,70], color='k')
@@ -97,7 +100,7 @@ plot_confusion_rates(
     ylabel='',
     title='(b) Vertical (Dynamic)'
 )
-offs = 0.15
+offs = 0.125
 axs[1].plot([2-offs, 2+offs], [40,40], color='k')
 axs[1].plot([3-offs, 3+offs], [70,70], color='k')
 axs[1].plot([4-offs, 4+offs], [70,70], color='k')
@@ -107,7 +110,7 @@ blue_patch = plt.Line2D([], [], color='tab:blue', marker='D', markerfacecolor='w
                         markersize=5, label='15° spacing')
 black_patch = plt.Line2D([], [], color='k', marker='o', markerfacecolor='white', markeredgecolor='k', lw=3,
                           markersize=5, label='30° spacing')
-fig.legend(handles=[blue_patch, black_patch], framealpha=1.0, loc='lower center', ncol=2, bbox_to_anchor=(0.5, -0.1))
+fig.legend(handles=[blue_patch, black_patch], framealpha=1.0, loc='lower center', ncol=2, bbox_to_anchor=(0.5, -0.175))
 
 plt.savefig(pjoin(fig_dir, 'VerticalLCR_DenseVsSparse.eps'), bbox_inches='tight')
 
