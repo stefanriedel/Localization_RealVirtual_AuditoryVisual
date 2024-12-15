@@ -107,9 +107,9 @@ axs[1].plot([4-offs, 4+offs], [70,70], color='k')
 
 # Legend
 blue_patch = plt.Line2D([], [], color='tab:blue', marker='D', markerfacecolor='white', markeredgecolor='k', lw=3,
-                        markersize=5, label='15° spacing')
+                        markersize=5, label='15° vertical spacing')
 black_patch = plt.Line2D([], [], color='k', marker='o', markerfacecolor='white', markeredgecolor='k', lw=3,
-                          markersize=5, label='30° spacing')
+                          markersize=5, label='30° vertical spacing')
 fig.legend(handles=[blue_patch, black_patch], framealpha=1.0, loc='lower center', ncol=2, bbox_to_anchor=(0.5, -0.175))
 
 plt.savefig(pjoin(fig_dir, 'VerticalLCR_DenseVsSparse.eps'), bbox_inches='tight')
