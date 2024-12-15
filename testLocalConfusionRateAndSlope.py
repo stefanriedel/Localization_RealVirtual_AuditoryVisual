@@ -1,4 +1,6 @@
-from Utility.localizationEvaluationUtility import testGroupedLocalConfusionRate, testGroupedSlopeData, testGroupedLocalConfusionRateConstantSampleSize, testGroupedSlopeDataConstantSampleSize
+from Utility.testGroupedLocalConfusionRateConstantSampleSize import testGroupedLocalConfusionRateConstantSampleSize
+from Utility.testGroupedSlopeDataConstantSampleSize import testGroupedSlopeDataConstantSampleSize
+
 from os.path import dirname, join as pjoin
 import numpy as np
 
@@ -29,7 +31,7 @@ def bonferroniHolm(pvals):
 
 
 # SET DIMENSION YOU WANT TO TEST
-AZIMUTH = False
+AZIMUTH = True
 ELEVATION = not AZIMUTH
 
 NONPARAM = True

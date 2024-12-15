@@ -11,6 +11,7 @@ import warnings
 import scipy.stats as stats
 
 from Utility.wilcoxon import stats_wilcoxon
+from Utility.mannwhitneyu import stats_mannwhitneyu
 
 from Utility.loudspeakerPositions import azi, ele
 
@@ -961,9 +962,9 @@ def testGroupedSlopeData(first_condition_data, second_condition_data, condition_
         plt.boxplot([g_first, g_second])
         plt.show(block=True)
 
-    #res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
-    #res = stats.wilcoxon(g_first, g_second, alternative='two-sided')#alternative='greater')
-    res, T_plus, T_minus = stats_wilcoxon(g_first, g_second, alternative='two-sided')#alternative='greater')
+    #res = stats.ttest_rel(g_first, g_second, alternative='two-sided')
+    #res = stats.wilcoxon(g_first, g_second, alternative='two-sided')
+    res, T_plus, T_minus = stats_wilcoxon(g_first, g_second, alternative='two-sided')
     
     cohens_d = (np.mean(g_first) - np.mean(g_second)) / (np.sqrt((np.std(g_first) ** 2 + np.std(g_second) ** 2) / 2))
 
@@ -1009,26 +1010,26 @@ def testGroupedSlopeDataConstantSampleSize(first_condition_data, second_conditio
 
     if PAIRED_SAMPLES:
         if NONPARAM:
-            res, T_plus, T_minus = stats_wilcoxon(g_first, g_second, alternative='two-sided')#alternative='greater')
+            res, T_plus, T_minus = stats_wilcoxon(g_first, g_second, alternative='two-sided')
             print('Conditions: ' + str(condition_pair), 
                 ' --> ' + str(np.round(np.median(g_first), 2)) + ' vs. ' + str(np.round(np.median(g_second), 2)),
                 'pvalue: ' + str(res[1]),
                 'T(' + str(g_first.size) + ') = ' + str(T_plus - T_minus))
         else:
-            res = stats.ttest_rel(g_first, g_second, alternative='two-sided')#alternative='greater')
+            res = stats.ttest_rel(g_first, g_second, alternative='two-sided')
             print('Conditions: ' + str(condition_pair), 
                 ' --> ' + str(np.round(np.mean(g_first), 2)) + ' vs. ' + str(np.round(np.mean(g_second), 2)),
                 'pvalue: ' + str(res[1]),
                 't(' + str(g_first.size) + ') = ' + str(res[0]))
     else:
         if NONPARAM:
-            res = stats.mannwhitneyu(g_first, g_second, alternative='two-sided')#alternative='greater')
+            res = stats.mannwhitneyu(g_first, g_second, alternative='two-sided')
             print(#'Directions: ' + str(directions), 
                 'Conditions: ' + str(condition_pair), 
                 ' --> ' + str(np.round(np.median(g_first), 2)) + ' vs. ' + str(np.round(np.median(g_second), 2)),
                 'pvalue: ' + str(res[1]), 'U1(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
         else:
-            res = stats.ttest_ind(g_first, g_second, alternative='two-sided')#alternative='greater')
+            res = stats.ttest_ind(g_first, g_second, alternative='two-sided')
             print('Conditions: ' + str(condition_pair), 
                 ' --> ' + str(np.round(np.mean(g_first), 2)) + ' vs. ' + str(np.round(np.mean(g_second), 2)),
                 'pvalue: ' + str(res[1]),
@@ -1158,7 +1159,7 @@ def testGroupedLocalConfusionRate(first_condition_data, second_condition_data, c
     p_first = float(np.round(np.sum(K_first))) / np.sum(N_first)
     p_second = float(np.round(np.sum(K_second))) / np.sum(N_second)
 
-    res = stats.binomtest(k, n, p_first, alternative='two-sided')#alternative='greater')
+    res = stats.binomtest(k, n, p_first, alternative='two-sided')
     print(#'Directions: ' + str(directions), 
           'Conditions: ' + str(condition_pair), 
           ' --> ' + str(int(round(p_first, 2) * 100)) + '%' + ' vs. ' +  str(int(round(p_second, 2) * 100)) +'%', 
@@ -1196,26 +1197,28 @@ def testGroupedLocalConfusionRateConstantSampleSize(first_condition_data, second
 
     if PAIRED_SAMPLES:
         if NONPARAM:
-            res, T_plus, T_minus = stats_wilcoxon(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+            res, T_plus, T_minus = stats_wilcoxon(confusion_rate_first, confusion_rate_second, alternative='two-sided', method='approx')
+            effect_size = res.effect_size # effect size calculated from z value in approx method (requested for revision of paper)
+            res, T_plus, T_minus = stats_wilcoxon(confusion_rate_first, confusion_rate_second, alternative='two-sided', method='auto')
             print(#'Directions: ' + str(directions), 
                 'Conditions: ' + str(condition_pair), 
                 ' --> ' + str(int(round(np.mean(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.mean(confusion_rate_second), 2) * 100)) +'%', 
-                'pvalue: ' + str(res[1]), 'T(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(T_plus - T_minus))
+                'pvalue: ' + str(res[1]), 'T(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(T_plus - T_minus), 'r = ' + str(effect_size))
         else:
-            res = stats.ttest_rel(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+            res = stats.ttest_rel(confusion_rate_first, confusion_rate_second, alternative='two-sided')
             print(#'Directions: ' + str(directions), 
                 'Conditions: ' + str(condition_pair), 
                 ' --> ' + str(int(round(np.mean(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.mean(confusion_rate_second), 2) * 100)) +'%', 
                 'pvalue: ' + str(res[1]), 't(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
     else:
         if NONPARAM:
-            res = stats.mannwhitneyu(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+            res, effect_size = stats_mannwhitneyu(confusion_rate_first, confusion_rate_second, alternative='two-sided')
             print(#'Directions: ' + str(directions), 
                 'Conditions: ' + str(condition_pair), 
                 ' --> ' + str(int(round(np.mean(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.mean(confusion_rate_second), 2) * 100)) +'%', 
-                'pvalue: ' + str(res[1]), 'U1(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]))
+                'pvalue: ' + str(res[1]), 'U1(' + str(len(SUBJ_IDCS[0])) + ') = ' + str(res[0]), 'r = ' + str(effect_size))
         else:
-            res = stats.ttest_ind(confusion_rate_first, confusion_rate_second, alternative='two-sided')#alternative='greater')
+            res = stats.ttest_ind(confusion_rate_first, confusion_rate_second, alternative='two-sided')
             print(#'Directions: ' + str(directions), 
                 'Conditions: ' + str(condition_pair), 
                 ' --> ' + str(int(round(np.mean(confusion_rate_first), 2) * 100)) + '%' + ' vs. ' +  str(int(round(np.mean(confusion_rate_second), 2) * 100)) +'%', 

@@ -9,19 +9,13 @@ from numpy import (isscalar, r_, log, around, unique, asarray, zeros,
                    compress, pi, exp, ravel, count_nonzero, sin, cos,
                    arctan2, hypot)
 
-from scipy import optimize, special, interpolate, stats
 from scipy._lib._bunch import _make_tuple_bunch
 from scipy._lib._util import _rename_parameter, _contains_nan, _get_nan
 
-from scipy.stats._ansari_swilk_statistics import gscale, swilk
 from scipy.stats import _stats_py
-from scipy.stats._fit import FitResult
-from scipy.stats._stats_py import find_repeats, _normtest_finish, SignificanceResult
-from scipy.stats.contingency import chi2_contingency
+from scipy.stats._stats_py import find_repeats
 from scipy.stats import distributions
-from scipy.stats._distn_infrastructure import rv_generic
 from scipy.stats._hypotests import _get_wilcoxon_distr
-from scipy.stats._axis_nan_policy import _axis_nan_policy_factory
 
 WilcoxonResult = _make_tuple_bunch('WilcoxonResult', ['statistic', 'pvalue'])
 
@@ -394,4 +388,6 @@ def stats_wilcoxon(x, y=None, zero_method="wilcox", correction=False,
     res = WilcoxonResult(T, prob)
     if method == 'approx':
         res.zstatistic = z
+        effect_size = z / np.sqrt(count)
+        res.effect_size = effect_size
     return res, r_plus, r_minus
