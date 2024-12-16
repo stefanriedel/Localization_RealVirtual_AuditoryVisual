@@ -13,7 +13,10 @@ lcr_static_ele = np.load(file=pjoin(data_dir, 'LocalConfusionDataElevationStatic
 lcr_dynamic_ele = np.load(file=pjoin(data_dir, 'LocalConfusionDataElevationDynamic.npy'), allow_pickle=True).tolist()
 
 # Common parameters
-ylabel_textsize = 11
+title_textsize = 14
+ylabel_textsize = 13
+xlabel_textsize = 13
+rot_angle = 25
 
 def adjacent_values(vals, q1, q3):
     upper_adjacent_value = q3 + (q3 - q1) * 1.5
@@ -65,24 +68,25 @@ def plot_confusion_rates(ax, lcr_data, conditions, xlabel, ylabel, title):
     ax.vlines(x_inds, whiskersMin[l_idx], whiskersMax[l_idx], color='k', linestyle='-', lw=1)
 
     ax.set_xticks([1, 2, 3, 4])
-    ax.set_xticklabels(xlabel)
+    ax.set_xticklabels(xlabel, fontsize=xlabel_textsize, rotation=rot_angle)
     ax.set_ylabel(ylabel, fontsize=ylabel_textsize)
     ax.set_ylim([0, 100.0])
     ax.set_yticks(ticks=np.arange(0, 110, 10))
     ax.grid(axis='y')
-    ax.set_title(title)
+    ax.set_title(title, fontsize=title_textsize)
 
-    ax.text(x=0 + 1, y=-17,s='--Real--')
-    ax.text(x=2 + 1, y=-17,s='--Virtual--')
+    ax.text(x=0 + 1, y=-27.5,s='--Real--', fontsize=xlabel_textsize)
+    ax.text(x=2 + 1, y=-27.5,s='--Virtual--', fontsize=xlabel_textsize)
 
+size = 1.125
 # Subplot settings
-fig, axs = plt.subplots(1, 2, figsize=(6, 3), sharey=False, gridspec_kw={'wspace': 0.2})
+fig, axs = plt.subplots(1, 2, figsize=(6*size, 3*size), sharey=False, gridspec_kw={'wspace': 0.2})
 
 # Static plot
 plot_confusion_rates(
     axs[0], lcr_static_ele,
     conditions=['StaticOpenEars', 'StaticOpenHeadphones', 'StaticIndivHRTF', 'StaticKU100HRTF'],
-    xlabel=['Op.Ear', 'Op.Hp.', 'Indiv.', 'KU100'],
+    xlabel=['Op.Ear ', 'Op.Hp. ', 'Indiv.', 'KU100'],
     ylabel='Local Confusion Rate (%)',
     title='(a) Vertical (Static)'
 )
@@ -107,10 +111,10 @@ axs[1].plot([4-offs, 4+offs], [70,70], color='k')
 
 # Legend
 blue_patch = plt.Line2D([], [], color='tab:blue', marker='D', markerfacecolor='white', markeredgecolor='k', lw=3,
-                        markersize=5, label='15° vertical spacing')
+                        markersize=6, label='15° vertical spacing')
 black_patch = plt.Line2D([], [], color='k', marker='o', markerfacecolor='white', markeredgecolor='k', lw=3,
-                          markersize=5, label='30° vertical spacing')
-fig.legend(handles=[blue_patch, black_patch], framealpha=1.0, loc='lower center', ncol=2, bbox_to_anchor=(0.5, -0.175))
+                          markersize=6, label='30° vertical spacing')
+fig.legend(handles=[blue_patch, black_patch], framealpha=1.0, loc='lower center', ncol=2, bbox_to_anchor=(0.5, -0.25), fontsize=xlabel_textsize)
 
 plt.savefig(pjoin(fig_dir, 'VerticalLCR_DenseVsSparse.eps'), bbox_inches='tight')
 

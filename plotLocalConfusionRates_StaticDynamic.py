@@ -19,12 +19,13 @@ lcr_dynamic_azi = np.load(pjoin(data_dir, 'LocalConfusionDataAzimuthDynamic.npy'
 static_conditions = ['StaticOpenEars', 'StaticOpenHeadphones', 'StaticIndivHRTF', 'StaticKU100HRTF']
 dynamic_conditions = ['DynamicOpenEars', 'DynamicOpenHeadphones', 'DynamicKEMARHRTF', 'DynamicKU100HRTF']
 
-xlabels_static = ['Op.Ear', 'Op.Hp.', 'Indiv.', 'KU100']
-xlabels_dynamic = ['Op.Ear', 'Op.Hp.', 'KEMAR', 'KU100']
+xlabels_static = ['Op.Ear ', '  Op.Hp. ', 'Indiv.', 'KU100']
+xlabels_dynamic = ['Op.Ear ', '  Op.Hp. ', 'KEMAR', 'KU100']
 
 # Common parameters
-ylabel_textsize = 12
-xlabel_textsize = 11
+title_textsize = 14
+ylabel_textsize = 13
+xlabel_textsize = 13
 
 # Utility function to calculate confusion rates
 def getConfusionRatesConstantSampleSize(lcr_data, conditions, directions):
@@ -54,15 +55,17 @@ static_vertical_rates = getConfusionRatesConstantSampleSize(lcr_static_ele, stat
 dynamic_horizontal_rates = getConfusionRatesConstantSampleSize(lcr_dynamic_azi, dynamic_conditions, horizontal_directions)
 dynamic_vertical_rates = getConfusionRatesConstantSampleSize(lcr_dynamic_ele, dynamic_conditions, vertical_directions)
 
+size = 1.25
 # Set up the figure and subplots
-fig, axes = plt.subplots(1, 4, figsize=(12, 3.5), constrained_layout=True)
+fig, axes = plt.subplots(1, 4, figsize=(12*size, 3*size), gridspec_kw={'wspace': 0.2}, sharey=False)#constrained_layout=True)
 
+rot_angle = 25
 # Plot Static Horizontal
 sns.violinplot(data=static_horizontal_rates.T * 100, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'lightgreen', 'lightcoral'], ax=axes[0], inner_kws=dict(whis_width=1, color="black", marker=''))
 axes[0].plot([0,1,2,3], np.median(static_horizontal_rates.T * 100.0, axis=0), linestyle='', marker='o', markerfacecolor='white', markeredgecolor='k')
-axes[0].set_title('(a) Horizontal (Static)')
+axes[0].set_title('(a) Horizontal (Static)', fontsize=title_textsize)
 axes[0].set_xticks(range(len(xlabels_static)))
-axes[0].set_xticklabels(xlabels_static, fontsize=xlabel_textsize)
+axes[0].set_xticklabels(xlabels_static, fontsize=xlabel_textsize, rotation=rot_angle)
 axes[0].set_ylabel('Local Confusion Rate (%)', fontsize=ylabel_textsize)
 axes[0].grid(axis='y')
 axes[0].set_ylim(0, 100)
@@ -78,23 +81,23 @@ axes[0].plot([1+off,2-off], [82+o,82+o], color='k')
 #Report mean LCR values:
 yval = 85
 clr = 'dimgray'
-fs=11
+fs=12
 off = -0.1
 axes[0].text(x=0 + off,y=yval+6,s=r'$\overline{\mathrm{LCR}}:$', color=clr, fontsize=fs)
 axes[0].text(x=0 + off,y=yval,s='4%', color=clr, fontsize=fs)
 axes[0].text(x=1 + off,y=yval,s='13%', color=clr, fontsize=fs)
 axes[0].text(x=2 + off,y=yval,s='8%', color=clr, fontsize=fs)
 axes[0].text(x=3 + off,y=yval,s='11%', color=clr, fontsize=fs)
-axes[0].text(x=0,y=-15,s='--Real--', fontsize=xlabel_textsize)
-axes[0].text(x=2,y=-15,s='--Virtual--', fontsize=xlabel_textsize)
+axes[0].text(x=0,y=-25,s='--Real--', fontsize=xlabel_textsize)
+axes[0].text(x=2,y=-25,s='--Virtual--', fontsize=xlabel_textsize)
 
 
 # Plot Dynamic Horizontal
 sns.violinplot(data=dynamic_horizontal_rates.T * 100, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'khaki', 'lightcoral'], ax=axes[1],inner_kws=dict(whis_width=1, color="black", marker=''))
 axes[1].plot([0,1,2,3], np.median(dynamic_horizontal_rates.T * 100.0, axis=0), linestyle='', marker='o', markerfacecolor='white', markeredgecolor='k')
-axes[1].set_title('(b) Horizontal (Dynamic)')
+axes[1].set_title('(b) Horizontal (Dynamic)', fontsize=title_textsize)
 axes[1].set_xticks(range(len(xlabels_dynamic)))
-axes[1].set_xticklabels(xlabels_dynamic, fontsize=xlabel_textsize)
+axes[1].set_xticklabels(xlabels_dynamic, fontsize=xlabel_textsize, rotation=rot_angle)
 #axes[1].set_ylabel('Local Confusion Rate (%)')
 axes[1].grid(axis='y')
 axes[1].set_ylim(0, 100)
@@ -107,23 +110,23 @@ axes[1].text(x=3-0.075, y=2.5, s='*', fontsize=14)
 #Report mean LCR values:
 yval = 85
 clr = 'dimgray'
-fs=11
+fs=12
 off = -0.1
 axes[1].text(x=0 + off,y=yval+6,s=r'$\overline{\mathrm{LCR}}:$', color=clr, fontsize=fs)
 axes[1].text(x=0 + off,y=yval,s='0%', color=clr, fontsize=fs)
 axes[1].text(x=1 + off,y=yval,s='0%', color=clr, fontsize=fs)
 axes[1].text(x=2 + off,y=yval,s='1%', color=clr, fontsize=fs)
 axes[1].text(x=3 + off,y=yval,s='0%', color=clr, fontsize=fs)
-axes[1].text(x=0,y=-15,s='--Real--', fontsize=xlabel_textsize)
-axes[1].text(x=2,y=-15,s='--Virtual--', fontsize=xlabel_textsize)
+axes[1].text(x=0,y=-25,s='--Real--', fontsize=xlabel_textsize)
+axes[1].text(x=2,y=-25,s='--Virtual--', fontsize=xlabel_textsize)
 
 
 # Plot Static Vertical
 sns.violinplot(data=static_vertical_rates.T * 100, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'lightgreen', 'lightcoral'], ax=axes[2], inner_kws=dict(whis_width=1, color="black", marker=''))
 axes[2].plot([0,1,2,3], np.median(static_vertical_rates.T * 100.0, axis=0), linestyle='', marker='o', markerfacecolor='white', markeredgecolor='k')
-axes[2].set_title('(c) Vertical (Static)')
+axes[2].set_title('(c) Vertical (Static)', fontsize=title_textsize)
 axes[2].set_xticks(range(len(xlabels_static)))
-axes[2].set_xticklabels(xlabels_static, fontsize=xlabel_textsize)
+axes[2].set_xticklabels(xlabels_static, fontsize=xlabel_textsize, rotation=rot_angle)
 #axes[2].set_ylabel('Local Confusion Rate (%)')
 axes[2].grid(axis='y')
 axes[2].set_ylim(0, 100)
@@ -141,22 +144,22 @@ axes[2].plot([2+off,3-off], [80+o,80+o], color='k')
 #Report mean LCR values:
 yval = 85
 clr = 'dimgray'
-fs=11
+fs=12
 off = -0.1
 axes[2].text(x=0 + off,y=yval+6,s=r'$\overline{\mathrm{LCR}}:$', color=clr, fontsize=fs)
 axes[2].text(x=0 + off,y=yval,s='12%', color=clr, fontsize=fs)
 axes[2].text(x=1 + off,y=yval,s='38%', color=clr, fontsize=fs)
 axes[2].text(x=2 + off,y=yval,s='35%', color=clr, fontsize=fs)
 axes[2].text(x=3 + off,y=yval,s='45%', color=clr, fontsize=fs)
-axes[2].text(x=0,y=-15,s='--Real--', fontsize=xlabel_textsize)
-axes[2].text(x=2,y=-15,s='--Virtual--', fontsize=xlabel_textsize)
+axes[2].text(x=0,y=-25,s='--Real--', fontsize=xlabel_textsize)
+axes[2].text(x=2,y=-25,s='--Virtual--', fontsize=xlabel_textsize)
 
 # Plot Dynamic Vertical
 sns.violinplot(data=dynamic_vertical_rates.T * 100, cut=0, linewidth=1.25, palette=['skyblue', 'slateblue', 'khaki', 'lightcoral'], ax=axes[3], inner_kws=dict(whis_width=1, color="black", marker=''))
 axes[3].plot([0,1,2,3], np.median(dynamic_vertical_rates.T * 100.0, axis=0), linestyle='', marker='o', markerfacecolor='white', markeredgecolor='k')
-axes[3].set_title('(d) Vertical (Dynamic)')
+axes[3].set_title('(d) Vertical (Dynamic)', fontsize=title_textsize)
 axes[3].set_xticks(range(len(xlabels_dynamic)))
-axes[3].set_xticklabels(xlabels_dynamic, fontsize=xlabel_textsize)
+axes[3].set_xticklabels(xlabels_dynamic, fontsize=xlabel_textsize, rotation=rot_angle)
 #axes[3].set_ylabel('Local Confusion Rate (%)')
 axes[3].grid(axis='y')
 axes[3].set_ylim(0, 100)
@@ -180,15 +183,15 @@ axes[3].text(x=3-0.075, y=72, s='*', fontsize=14)
 #Report mean LCR values:
 yval = 85
 clr = 'dimgray'
-fs=11
+fs=12
 off = -0.1
 axes[3].text(x=0 + off,y=yval+6,s=r'$\overline{\mathrm{LCR}}:$', color=clr, fontsize=fs)
 axes[3].text(x=0 + off,y=yval,s='4%', color=clr, fontsize=fs)
 axes[3].text(x=1 + off,y=yval,s='15%', color=clr, fontsize=fs)
 axes[3].text(x=2 + off,y=yval,s='35%', color=clr, fontsize=fs)
 axes[3].text(x=3 + off,y=yval,s='38%', color=clr, fontsize=fs)
-axes[3].text(x=0,y=-15,s='--Real--', fontsize=xlabel_textsize)
-axes[3].text(x=2,y=-15,s='--Virtual--', fontsize=xlabel_textsize)
+axes[3].text(x=0,y=-25,s='--Real--', fontsize=xlabel_textsize)
+axes[3].text(x=2,y=-25,s='--Virtual--', fontsize=xlabel_textsize)
 
 # Save and show the figure
 plt.savefig(pjoin('Figures', 'StaticDynamicLCR.eps'), bbox_inches='tight')
